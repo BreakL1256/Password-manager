@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Password_manager.Shared;
+using Password_manager.Entities;
+using Password_manager.Templates;
+using Microsoft.Extensions.Logging;
 
 namespace Password_manager
 {
@@ -18,7 +21,9 @@ namespace Password_manager
 #if DEBUG
     		builder.Logging.AddDebug();
 #endif
-
+            builder.Services.AddSingleton<SqliteConnectionFactory>();
+            builder.Services.AddSingleton<RequestHandler>();
+            builder.Services.AddTransient<AddNewDataView>();
             return builder.Build();
         }
     }

@@ -1,33 +1,41 @@
-﻿using System.ComponentModel;
+﻿using Password_manager.Entities;
+using Password_manager.Templates;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Microsoft.VisualBasic;
 
 namespace Password_manager
 {
-    public class PasswordItem
-    {
-        public PasswordItem(string Title, string Username, string Password)
-        {
-            this.Title = Title;
-            this.Username = Username;
-            this.Password = Password;
-        }
-        public string Title { get; set; }
-        public string Username { get; set; }
-        public string Password { get; set; }
-    }
+   
     public partial class MainPage : ContentPage, INotifyPropertyChanged
     {
+        private readonly IServiceProvider _services;
+
         private PasswordItem? _selectedPassword;
         public List<PasswordItem> PasswordList { get; set; } = new List<PasswordItem>();
-        public MainPage()
+        public MainPage(IServiceProvider services)
         {
-            PasswordList.Add(new PasswordItem("gmail password","tom","abc"));
-            PasswordList.Add(new PasswordItem("netflix password","john", "cba"));
+            PasswordList.Add(new PasswordItem("gmail password", "tom", "abc"));
+            PasswordList.Add(new PasswordItem("netflix password", "john", "cba"));
 
             InitializeComponent();
 
             BindingContext = this;
+            _services = services;
+        }
+
+        private void OnShowAddView(object sender, EventArgs e)
+        {
+            var view = _services.GetService<AddNewDataView>();
+            DynamicContentView.Content = view;
+        }
+
+        private void OnShowDataView(object sender, TappedEventArgs e)
+        {
+            if (e.Parameter is PasswordItem _selectedPassword)
+            {
+                DynamicContentView.Content = new ViewDataView(_selectedPassword);
+            }
         }
 
         public PasswordItem? SelectedPassword

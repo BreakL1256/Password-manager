@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Password_manager.Templates.AddNewDataView">
+    <VerticalStackLayout>
+        <Label 
+            Text="Title"
+            VerticalOptions="Center" 
+            HorizontalOptions="Center" />
+        <Entry
+            x:Name="TitleField"
+            VerticalOptions="Center" 
+            HorizontalOptions="Center"/>
+        <Label
+            Text="Username"
+            VerticalOptions="Center" 
+            HorizontalOptions="Center"/>
+        <Entry
+            x:Name="UsernameField"
+            VerticalOptions="Center" 
+            HorizontalOptions="Center"/>
+        <Label
+              Text="Password"
+              VerticalOptions="Center" 
+              HorizontalOptions="Center"/>
+        <Entry
+            x:Name="PasswordField"
+            VerticalOptions="Center" 
+            HorizontalOptions="Center"/>
+        <Button Text="Add" Clicked="OnNewDataSubmit"/>
+    </VerticalStackLayout>
+</ContentView>

@@ -8,39 +8,44 @@
             <ColumnDefinition Width="150"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <CollectionView 
-                        Grid.Column="0"
-                        BackgroundColor="white"
-                        ItemsSource="{Binding PasswordList}"
-                        SelectedItem="{Binding SelectedPassword}"
-                        SelectionMode="Single">
-            <CollectionView.ItemTemplate>
-                <DataTemplate>
-                    <Grid>
-                        <Grid.GestureRecognizers>
-                            <TapGestureRecognizer/>
-                        </Grid.GestureRecognizers>
+        <StackLayout>
+            <ContentView>
+                <HorizontalStackLayout Spacing="10" Padding="10">
+                    <Button Text="Edit"/>
+                    <Button Text="Add" Clicked="OnShowAddView"/>
+                </HorizontalStackLayout>
+            </ContentView>
+            <CollectionView 
+                            Grid.Column="0"
+                            BackgroundColor="white"
+                            ItemsSource="{Binding PasswordList}"
+                            SelectedItem="{Binding SelectedPassword}"
+                            SelectionMode="Single">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer
+                                        Tapped="OnShowDataView"
+                                        CommandParameter="{Binding}"/>
+                            </Grid.GestureRecognizers>
 
-                        <Label Text="{Binding Title}"
-                               TextColor="Black"/>
-                    </Grid>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
+                            <Label Text="{Binding Title}"
+                                   TextColor="Black"/>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
 
-            <CollectionView.ItemsLayout>
-                <LinearItemsLayout Orientation="Vertical"/>
-            </CollectionView.ItemsLayout>
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical"/>
+                </CollectionView.ItemsLayout>
             
-        </CollectionView>
-
+            </CollectionView>
+        </StackLayout>
         <ContentView 
+                    x:Name="DynamicContentView"
                     BackgroundColor="DarkGray"
-                    Grid.Column="1">
-            <StackLayout>
-                <Label Text="{Binding SelectedPassword.Username}" TextColor="White"/>
-                <Label Text="{Binding SelectedPassword.Password}" TextColor="White"/>
-            </StackLayout>
-        </ContentView>
+                    Grid.Column="1"/>
     </Grid>
 
 </ContentPage>
