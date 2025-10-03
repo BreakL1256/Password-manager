@@ -10,7 +10,8 @@
         <Entry
             x:Name="TitleField"
             VerticalOptions="Center" 
-            HorizontalOptions="Center"/>
+            HorizontalOptions="Center"
+            Width="100"/>
         <Label
             Text="Username"
             VerticalOptions="Center" 
@@ -18,7 +19,8 @@
         <Entry
             x:Name="UsernameField"
             VerticalOptions="Center" 
-            HorizontalOptions="Center"/>
+            HorizontalOptions="Center"
+            Width="100"/>
         <Label
               Text="Password"
               VerticalOptions="Center" 
@@ -26,7 +28,8 @@
         <Entry
             x:Name="PasswordField"
             VerticalOptions="Center" 
-            HorizontalOptions="Center"/>
+            HorizontalOptions="Center"
+            Width="100"/>
         <Button Text="Add" Clicked="OnNewDataSubmit"/>
     </VerticalStackLayout>
 </ContentView>

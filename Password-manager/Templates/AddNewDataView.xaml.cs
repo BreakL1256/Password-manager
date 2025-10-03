@@ -13,13 +13,17 @@ public partial class AddNewDataView : ContentView
 
 	private async void OnNewDataSubmit(object sender, EventArgs e)
 	{
-		PasswordItem newItem = new PasswordItem(TitleField.Text, UsernameField.Text, PasswordField.Text);
-		try
+		if (_handler != null && TitleField.Text != "" && UsernameField.Text != "" && PasswordField.Text != "")
 		{
-			await _handler.SaveDataToAccount(newItem);
-		} catch (Exception ex)
-		{
-			Console.WriteLine("Data submission failed: " + ex);
+			PasswordItem newItem = new PasswordItem(TitleField.Text, UsernameField.Text, PasswordField.Text);
+			try
+			{
+				await _handler.SaveDataToAccount(newItem);
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine("Data submission failed: " + ex);
+			}
 		}
 	}
 }
