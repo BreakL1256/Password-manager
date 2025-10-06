@@ -24,7 +24,7 @@ namespace Password_manager.Entities
             {
                 var dtos = await database.QueryAsync<ProgramDto>("SELECT * FROM Accounts;");
 
-                var result =  dtos.Select(dto => new PasswordItem(
+                var result = dtos.Select(dto => new PasswordItem(
                     dto.Title,
                     dto.Username,
                     dto.Password
@@ -41,7 +41,7 @@ namespace Password_manager.Entities
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Failed to fetch data: " + ex);
+                Debug.WriteLine("Failed to fetch data: " + ex);
                 return new List<PasswordItem>();
             }
         }
@@ -55,7 +55,20 @@ namespace Password_manager.Entities
 
             } catch (Exception e)
             {
-                Console.WriteLine("Failed to insert data into database" + e);
+                Debug.WriteLine("Failed to insert data into database" + e);
+            }
+        }
+
+        public async Task DeleteDataFromAccount(PasswordItem Item)
+        {
+            ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
+            try
+            {
+                await database.ExecuteAsync("DELETE FROM Accounts WHERE Title = ?", Item.Title);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Deleting from database failed: " + ex);
             }
         }
     }

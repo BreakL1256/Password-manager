@@ -2,6 +2,7 @@
 using Password_manager.Entities;
 using Password_manager.Templates;
 using Microsoft.Extensions.Logging;
+using CommunityToolkit.Maui;
 
 namespace Password_manager
 {
@@ -12,6 +13,7 @@ namespace Password_manager
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+                .UseMauiCommunityToolkit()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");

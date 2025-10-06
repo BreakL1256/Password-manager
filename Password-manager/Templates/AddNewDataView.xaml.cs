@@ -11,6 +11,8 @@ public partial class AddNewDataView : ContentView
 		_handler = handler;
 	}
 
+	public Func<Task> OnDataAdded { get; set; }
+
 	private async void OnNewDataSubmit(object sender, EventArgs e)
 	{
 		if (_handler != null && TitleField.Text != "" && UsernameField.Text != "" && PasswordField.Text != "")
@@ -19,6 +21,11 @@ public partial class AddNewDataView : ContentView
 			try
 			{
 				await _handler.SaveDataToAccount(newItem);
+
+				if(OnDataAdded != null)
+				{
+					await OnDataAdded();
+				}
 			}
 			catch (Exception ex)
 			{

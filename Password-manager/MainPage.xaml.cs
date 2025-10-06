@@ -4,12 +4,17 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Microsoft.VisualBasic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using CommunityToolkit.Mvvm.Input;
+using Microsoft.Maui.Controls;
 
 namespace Password_manager
 {
    
     public partial class MainPage : ContentPage, INotifyPropertyChanged
     {
+        public IAsyncRelayCommand<PasswordItem> DeleteCommand { get; }
+
         private readonly IServiceProvider _services;
 
         private readonly RequestHandler _handler;
@@ -18,14 +23,33 @@ namespace Password_manager
         public ObservableCollection<PasswordItem> PasswordList { get; set; } = new ObservableCollection<PasswordItem>();
         public MainPage(IServiceProvider services, RequestHandler handler)
         {
-            //PasswordList.Add(new PasswordItem("gmail password", "tom", "abc"));
-            //PasswordList.Add(new PasswordItem("netflix password", "john", "cba"));
-
             InitializeComponent();
 
             BindingContext = this;
             _services = services;
             _handler = handler;
+
+            DeleteCommand = new AsyncRelayCommand<PasswordItem>(DeleteSelectedData);
+        }
+
+        private async Task DeleteSelectedData(PasswordItem? Item)
+        {
+            if(Item == null)
+            {
+                return;
+            }
+
+            try
+            {
+                await _handler.DeleteDataFromAccount(Item);
+
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Failed to delete data: " + ex);
+            }
+            
+            await LoadData();
         }
 
         protected override async void OnAppearing()
@@ -49,13 +73,14 @@ namespace Password_manager
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Data list couldn ot be initiated: " + ex);
+                Debug.WriteLine("Data list couldn ot be initiated: " + ex);
             }
         }
 
         private void OnShowAddView(object sender, EventArgs e)
         {
             var view = _services.GetService<AddNewDataView>();
+            view.OnDataAdded = async () => await LoadData();
             DynamicContentView.Content = view;
         }
 
