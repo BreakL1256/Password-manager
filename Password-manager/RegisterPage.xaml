@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Password_manager.RegisterPage"
+             Title="RegisterPage">
+    <VerticalStackLayout 
+        Padding="40" 
+        Spacing="20"
+        VerticalOptions="Center"
+        HorizontalOptions="Center"
+        WidthRequest="400">
+
+        <Label Text="Create Account" 
+               FontSize="32" 
+               FontAttributes="Bold"
+               HorizontalOptions="Center"/>
+
+        <Entry x:Name="UsernameEntry" 
+               Placeholder="Username"
+               FontSize="16"/>
+
+        <Entry x:Name="PasswordEntry" 
+               Placeholder="Password" 
+               IsPassword="True"
+               FontSize="16"/>
+
+        <Entry x:Name="ConfirmPasswordEntry" 
+               Placeholder="Confirm Password" 
+               IsPassword="True"
+               FontSize="16"/>
+
+        <Button Text="Register"
+                BackgroundColor="Green"
+                TextColor="White"
+                HeightRequest="50"/>
+
+        <Button Text="Back to Login"
+                BackgroundColor="Transparent"
+                TextColor="Blue"/>
+    </VerticalStackLayout>
+</ContentPage>

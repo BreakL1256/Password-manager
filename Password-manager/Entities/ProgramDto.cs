@@ -17,4 +17,13 @@ namespace Password_manager.Entities {
         public string Username { get; set; }
         public string Password { get; set; }
     }
+
+    public class UserAccounts
+    {
+        [PrimaryKey]
+        [AutoIncrement]
+        public int Id { get; set; }
+        public string Username { get; set; }
+        public string Password { get; set; }
+    }
 }

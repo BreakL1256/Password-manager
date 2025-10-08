@@ -71,5 +71,35 @@ namespace Password_manager.Entities
                 Debug.WriteLine("Deleting from database failed: " + ex);
             }
         }
+
+        public async Task<bool> CheckUserAccount(string username, string password)
+        {
+            ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
+
+            try
+            {
+                var users = await database.QueryAsync<UserAccounts>("SELECT Username, Password FROM UserAccounts AS ua WHERE ua.Username = ?", username);
+
+                if(users == null || !users.Any())
+                {
+                    return false;
+                }
+
+                foreach (var user in users)
+                {
+                    if (user.Username == username && user.Password == password)
+                        {
+                            return true;
+                        }
+                }
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Failed to query user account information" + ex);
+                return false;
+            }
+        }
     }
 }
