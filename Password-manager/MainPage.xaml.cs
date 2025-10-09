@@ -39,16 +39,8 @@ namespace Password_manager
                 return;
             }
 
-            try
-            {
-                await _handler.DeleteDataFromAccount(Item);
+            await _handler.DeleteDataFromAccount(Item);
 
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("Failed to delete data: " + ex);
-            }
-            
             await LoadData();
         }
 
@@ -60,21 +52,15 @@ namespace Password_manager
 
         private async Task LoadData()
         {
-            try
-            {
-                var data = await _handler.GetAccountSavedData();
+            var data = await _handler.GetAccountSavedData();
 
-                PasswordList.Clear();
+            PasswordList.Clear();
 
-                foreach (var item in data)
-                {
-                    PasswordList.Add(item);
-                }
-            }
-            catch (Exception ex)
+            foreach (var item in data)
             {
-                Debug.WriteLine("Data list couldn ot be initiated: " + ex);
+                PasswordList.Add(item);
             }
+
         }
 
         private void OnShowAddView(object sender, EventArgs e)

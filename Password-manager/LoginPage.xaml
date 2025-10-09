@@ -44,7 +44,7 @@
                 HeightRequest="50"/>
 
         <Button Text="Go to Register" 
-                Command="{Binding NavigateToRegisterCommand}"
+                Command="{Binding NavigationToRegisterPageCommand}"
                 BackgroundColor="Transparent"
                 TextColor="Blue"/>
     </VerticalStackLayout>

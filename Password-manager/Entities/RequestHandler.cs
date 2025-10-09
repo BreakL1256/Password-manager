@@ -101,5 +101,19 @@ namespace Password_manager.Entities
                 return false;
             }
         }
+
+        public async Task RegisterNewUserAccount(string username, string password)
+        {
+            ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
+
+            try
+            {
+                await database.ExecuteAsync("INSERT INTO UserAccounts (Username, Password) VALUES (?, ?)", username, password);
+
+            }catch(Exception ex)
+            {
+                Debug.WriteLine("Failed to register new user: " + ex);
+            }
+        }
     }
 }

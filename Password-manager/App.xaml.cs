@@ -1,4 +1,5 @@
 ﻿//using Java.Lang;
+using System.Diagnostics;
 using Password_manager.Entities;
 using Password_manager.Shared;
 using SQLite;
@@ -43,14 +44,21 @@ namespace Password_manager
             await Task.Delay(100);
 
             bool isLoggedIn = false;
-
-            if (isLoggedIn)
+            try
             {
-                await Shell.Current.GoToAsync("//MainPage");
-            } else
+                if (isLoggedIn)
+                {
+                    await Shell.Current.GoToAsync("//MainPage");
+                }
+                else
+                {
+                    await Shell.Current.GoToAsync("//LoginPage");
+                }
+            } catch (Exception ex) 
             {
-                await Shell.Current.GoToAsync("//LoginPage");
+                Debug.WriteLine("Failed to navigate to either login page or main page" + ex);
             }
+
         }
 
         //protected override Window CreateWindow(IActivationState? activationState)

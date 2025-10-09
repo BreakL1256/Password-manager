@@ -9,6 +9,7 @@ public partial class LoginPage : ContentPage
 {	
 	private readonly RequestHandler _handler;
 	private IAsyncRelayCommand LoginCommand { get; }
+	private IAsyncRelayCommand NavigationToRegisterPageCommand {  get; }
 	public LoginPage(RequestHandler handler)
 	{
 		InitializeComponent();
@@ -20,17 +21,32 @@ public partial class LoginPage : ContentPage
 			canExecute: CanLogin
 		);
 
+        NavigationToRegisterPageCommand = new AsyncRelayCommand(NavigateToRegisterPage);
+
         UsernameEntry.TextChanged += (s, e) => LoginCommand.NotifyCanExecuteChanged();
         PasswordEntry.TextChanged += (s, e) => LoginCommand.NotifyCanExecuteChanged();
 
 		_handler = handler;
     }
 
-	private async Task CheckLoginCredentials()
+	private async Task NavigateToRegisterPage()
 	{
 		try
 		{
-			bool LoggedIn = await _handler.CheckUserAccount(UsernameEntry.Text, PasswordEntry.Text);
+			await Shell.Current.GoToAsync("//RegisterPage");
+		}
+		catch (Exception ex)
+		{
+			Debug.WriteLine("Failed to navigate to register page" + ex);
+		}
+
+	}
+
+    private async Task CheckLoginCredentials()
+	{
+		bool LoggedIn = await _handler.CheckUserAccount(UsernameEntry.Text, PasswordEntry.Text);
+		try
+		{
 
 			if (LoggedIn)
 			{
@@ -44,13 +60,12 @@ public partial class LoginPage : ContentPage
 		}
 		catch (Exception ex)
 		{
-			Debug.WriteLine("Failed to execute user check" + ex);
+			Debug.WriteLine("Failed to navigate to main page" + ex);
 		}
 	}
 
 	private bool CanLogin()
 	{
 		return !String.IsNullOrWhiteSpace(UsernameEntry.Text) && !String.IsNullOrWhiteSpace(PasswordEntry.Text);
-
     }
 }
