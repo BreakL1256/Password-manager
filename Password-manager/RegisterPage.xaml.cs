@@ -49,10 +49,19 @@ public partial class RegisterPage : ContentPage
 		string password = PasswordEntry.Text;
 		string confirmPassword = ConfirmPasswordEntry.Text;
 
+		bool DoesAccountAlreadyExist = await _handler.CheckUserAccount(username, password);
 
-        if (password == confirmPassword)
+        if (password == confirmPassword && !DoesAccountAlreadyExist)
 		{
 			await _handler.RegisterNewUserAccount(username, password);
+			try
+			{
+				await Shell.Current.GoToAsync("//LoginPage");
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine("Failed to navigate to Login page: " + ex);
+			}
 		}
 		else
 		{

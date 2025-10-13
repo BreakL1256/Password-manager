@@ -48,7 +48,7 @@ namespace Password_manager.Entities
             return salt;
         }
 
-        private byte[] HashString(string password, byte[] salt)
+        public byte[] HashString(string password, byte[] salt)
         {
             var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password))
             {

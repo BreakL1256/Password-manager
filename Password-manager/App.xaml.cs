@@ -3,6 +3,7 @@ using System.Diagnostics;
 using Password_manager.Entities;
 using Password_manager.Shared;
 using SQLite;
+using Microsoft.Maui.Storage;
 
 namespace Password_manager
 {
@@ -43,7 +44,7 @@ namespace Password_manager
         {
             await Task.Delay(100);
 
-            bool isLoggedIn = false;
+            bool isLoggedIn = Preferences.Get("IsLoggedIn", false);
             try
             {
                 if (isLoggedIn)

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 using Password_manager.Entities;
+using Microsoft.Maui.Storage;
 
 namespace Password_manager;
 
@@ -42,26 +43,33 @@ public partial class LoginPage : ContentPage
 
 	}
 
-    private async Task CheckLoginCredentials()
+	private async Task CheckLoginCredentials()
 	{
-		bool LoggedIn = await _handler.CheckUserAccount(UsernameEntry.Text, PasswordEntry.Text);
-		try
-		{
+		string username = UsernameEntry.Text;
+		string password = PasswordEntry.Text;
 
-			if (LoggedIn)
+        bool accountExists = await _handler.CheckUserAccount(username, password);
+
+        if (accountExists)
+		{
+			try
 			{
+				int UserId = await _handler.GetUserAccountId(username);
+				Preferences.Set("CurrentUserId", UserId);
+				Preferences.Set("CurrentUsername", username);
+				Preferences.Set("IsLoggedIn", true);
 				await Shell.Current.GoToAsync("//MainPage");
 			}
-			else
+			catch (Exception ex)
 			{
-				UsernameBorder.Stroke = Colors.Red;
-                PasswordBorder.Stroke = Colors.Red;
-            }
+				Debug.WriteLine("Failed to navigate to main page: " + ex);
+			}
 		}
-		catch (Exception ex)
+		else
 		{
-			Debug.WriteLine("Failed to navigate to main page" + ex);
-		}
+			UsernameBorder.Stroke = Colors.Red;
+            PasswordBorder.Stroke = Colors.Red;
+        }
 	}
 
 	private bool CanLogin()
