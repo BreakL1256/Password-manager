@@ -26,6 +26,7 @@ namespace Password_manager.Entities
         {
             ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
             int UserId = Preferences.Get("CurrentUserId", -1);
+
             try
             {
                 var users = await database.QueryAsync<UserAccounts>("SELECT * FROM UserAccounts WHERE Id = ?", UserId);
@@ -35,9 +36,11 @@ namespace Password_manager.Entities
                     throw new Exception("Current user couldn't be found");
                 }
 
+                string? userPassword = await SecureStorage.Default.GetAsync("CurrentPassword");
+
                 byte[] KEKSalt = Convert.FromBase64String(users[0].KEKSalt);
-                byte[] KEK = _tool.HashString(users[0].Password, KEKSalt);
-                string DEKInBase64 = _tool.Decrypt(users[0].EncryptedDEK, KEK);
+                byte[] KEK = await Task.Run(() => _tool.HashString(userPassword, KEKSalt));
+                string DEKInBase64 = await Task.Run(() => _tool.Decrypt(users[0].EncryptedDEK, KEK));
                 byte[] DEK = Convert.FromBase64String(DEKInBase64);
 
                 var dtos = await database.QueryAsync<ProgramDto>("SELECT * FROM Accounts WHERE UserId = ?", UserId);
@@ -50,11 +53,14 @@ namespace Password_manager.Entities
 
                 Debug.WriteLine($"inputs in the db {result.Count}");
 
-                foreach (var item in result)
+                await Task.Run(() =>
                 {
-                    item.Password = _tool.Decrypt(item.Password, DEK);
-                    Debug.WriteLine($"Title: {item.Title}, Username: {item.Username}");
-                }
+                    foreach (var item in result)
+                    {
+                        item.Password = _tool.Decrypt(item.Password, DEK);
+                        Debug.WriteLine($"Title: {item.Title}, Username: {item.Username}");
+                    }
+                });
 
                 return result;
             }
@@ -78,11 +84,13 @@ namespace Password_manager.Entities
                     throw new Exception("Current user couldn't be found");
                 }
 
+                string? userPassword = await SecureStorage.Default.GetAsync("CurrentPassword");
+
                 byte[] KEKSalt = Convert.FromBase64String(users[0].KEKSalt);
-                byte[] KEK = _tool.HashString(users[0].Password, KEKSalt);
-                string DEKInBase64 = _tool.Decrypt(users[0].EncryptedDEK, KEK);
+                byte[] KEK = await Task.Run(() => _tool.HashString(userPassword, KEKSalt));
+                string DEKInBase64 = await Task.Run(() => _tool.Decrypt(users[0].EncryptedDEK, KEK));
                 byte[] DEK = Convert.FromBase64String(DEKInBase64);
-                string encryptedVaultPasswordInBase64 = _tool.Encrypt(Item.Password, DEK);
+                string encryptedVaultPasswordInBase64 = await Task.Run(() => _tool.Encrypt(Item.Password, DEK));
 
                 await database.ExecuteAsync("INSERT INTO Accounts (UserId, Title, Username, Password) VALUES (?, ?, ?, ?);", 
                     UserId, Item.Title, Item.Username, encryptedVaultPasswordInBase64);    

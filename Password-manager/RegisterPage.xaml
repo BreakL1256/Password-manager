@@ -47,13 +47,13 @@
         </Border>
 
         <Button Text="Register"
-                Command="RegisterCommand"
+                Command="{Binding RegisterCommand}"
                 BackgroundColor="Green"
                 TextColor="White"
                 HeightRequest="50"/>
 
         <Button Text="Back to Login"
-                Command="NavigateBackToLoginCommand"
+                Command="{Binding NavigateBackToLoginCommand}"
                 BackgroundColor="Transparent"
                 TextColor="Blue"/>
     </VerticalStackLayout>

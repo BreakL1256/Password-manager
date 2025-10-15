@@ -7,8 +7,8 @@ namespace Password_manager;
 public partial class RegisterPage : ContentPage
 {
 	private readonly RequestHandler _handler;
-	private IAsyncRelayCommand NavigateBackToLoginCommand {  get; }
-    private IAsyncRelayCommand RegisterCommand { get; }
+	public IAsyncRelayCommand NavigateBackToLoginCommand {  get; }
+    public IAsyncRelayCommand RegisterCommand { get; }
     public RegisterPage(RequestHandler handler)
 	{
 		InitializeComponent();
@@ -23,6 +23,8 @@ public partial class RegisterPage : ContentPage
 		UsernameEntry.TextChanged += (s, e) => RegisterCommand.NotifyCanExecuteChanged();
         PasswordEntry.TextChanged += (s, e) => RegisterCommand.NotifyCanExecuteChanged();
         ConfirmPasswordEntry.TextChanged += (s, e) => RegisterCommand.NotifyCanExecuteChanged();
+
+		BindingContext = this;
     }
 
 	private async Task NavigateToLogin()

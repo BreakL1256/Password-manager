@@ -7,12 +7,15 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Storage;
+
 
 namespace Password_manager
 {
    
     public partial class MainPage : ContentPage, INotifyPropertyChanged
     {
+        public IAsyncRelayCommand LogoutFromAccount { get; }
         public IAsyncRelayCommand<PasswordItem> DeleteCommand { get; }
 
         private readonly IServiceProvider _services;
@@ -25,13 +28,29 @@ namespace Password_manager
         {
             InitializeComponent();
 
-            BindingContext = this;
             _services = services;
             _handler = handler;
 
+            LogoutFromAccount = new AsyncRelayCommand(Logout);
             DeleteCommand = new AsyncRelayCommand<PasswordItem>(DeleteSelectedData);
+            BindingContext = this;
         }
 
+        private async Task Logout()
+        {
+            Preferences.Remove("CurrentUserId");
+            Preferences.Remove("CurrentUsername");
+            Preferences.Remove("IsLoggedIn");
+            SecureStorage.Default.Remove("CurrentPassword");
+            try
+            {
+                await Shell.Current.GoToAsync("//LoginPage");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Failed to logout: " + ex);
+            }
+        }
         private async Task DeleteSelectedData(PasswordItem? Item)
         {
             if(Item == null)
