@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Password_manager.LoginPage"
+             Title="LoginPage">
+    <VerticalStackLayout 
+        Padding="40" 
+        Spacing="20"
+        VerticalOptions="Center"
+        HorizontalOptions="Center"
+        WidthRequest="400">
+
+        <Label Text="Password Manager" 
+               FontSize="32" 
+               FontAttributes="Bold"
+               HorizontalOptions="Center"/>
+
+        <Border x:Name="UsernameBorder"
+                Stroke="Gray"
+                StrokeThickness="2"
+                StrokeShape="RoundRectangle 8"
+                Padding="4">
+            <Entry x:Name="UsernameEntry" 
+               Placeholder="Username"
+               FontSize="16"/>
+        </Border>
+
+        <Border x:Name="PasswordBorder"
+                Stroke="Gray"
+                StrokeThickness="2"
+                StrokeShape="RoundRectangle 8"
+                Padding="4">
+            <Entry x:Name="PasswordEntry" 
+               Placeholder="Password" 
+               IsPassword="True"
+               FontSize="16"/>
+        </Border>
+
+
+        <Button Text="Login" 
+                Command="{Binding LoginCommand}"
+                BackgroundColor="Blue"
+                TextColor="White"
+                HeightRequest="50"/>
+
+        <Button Text="Go to Register" 
+                Command="{Binding NavigationToRegisterPageCommand}"
+                BackgroundColor="Transparent"
+                TextColor="Blue"/>
+    </VerticalStackLayout>
+    
+    
+</ContentPage>

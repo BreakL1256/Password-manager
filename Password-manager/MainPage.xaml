@@ -9,9 +9,22 @@
             <ColumnDefinition Width="150"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
+        <!--<Grid.RowDefinitions>
+            <RowDefinition Height="80"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>-->
+        
+       <!-- <ContentView>
+            <HorizontalStackLayout Spacing="10" Padding="10">
+                <Button Text="Logout" Command="{Binding LogoutFromAccount}"/>
+            </HorizontalStackLayout>
+        </ContentView>
+        -->
+        
         <StackLayout>
             <ContentView>
                 <HorizontalStackLayout Spacing="10" Padding="10">
+                    <Button Text="Logout" Command="{Binding LogoutFromAccount}"/>
                     <Button Text="Add" Clicked="OnShowAddView"/>
                 </HorizontalStackLayout>
             </ContentView>

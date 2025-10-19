@@ -13,7 +13,7 @@ namespace Password_manager.Entities
     {
         public PasswordItem(string Title, string Username, string Password)
         {
-            this.Title = Title;
+            this.Title = Title ?? "";
             this.Username = Username;
             this.Password = Password;
         }
