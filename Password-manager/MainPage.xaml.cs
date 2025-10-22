@@ -15,6 +15,7 @@ namespace Password_manager
    
     public partial class MainPage : ContentPage, INotifyPropertyChanged
     {
+        public IAsyncRelayCommand Cloud { get; }
         public IAsyncRelayCommand LogoutFromAccount { get; }
         public IAsyncRelayCommand<PasswordItem> DeleteCommand { get; }
 
@@ -31,9 +32,15 @@ namespace Password_manager
             _services = services;
             _handler = handler;
 
+            Cloud = new AsyncRelayCommand(StoreOnCloud);
             LogoutFromAccount = new AsyncRelayCommand(Logout);
             DeleteCommand = new AsyncRelayCommand<PasswordItem>(DeleteSelectedData);
             BindingContext = this;
+        }
+
+        private async Task StoreOnCloud()
+        {
+
         }
 
         private async Task Logout()
