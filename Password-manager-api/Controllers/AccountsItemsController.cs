@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Principal;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Password_manager_api.Entities;
 using Password_manager_api.Models;
 
 namespace Password_manager_api.Controllers
@@ -14,10 +16,12 @@ namespace Password_manager_api.Controllers
     public class AccountsItemsController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly JWTService _jwtService;
 
-        public AccountsItemsController(AppDbContext context)
+        public AccountsItemsController(AppDbContext context, JWTService jwtService)
         {
             _context = context;
+            _jwtService = jwtService;
         }
 
         // GET: api/AccountsItems
@@ -41,19 +45,62 @@ namespace Password_manager_api.Controllers
             return accountsItem;
         }
 
-        // POST: api/AccountsItems
+        // POST: api/AccountsItems/login
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<AccountsItem>> PostAccountsItem(AccountsItem accountsItem)
+        [HttpPost("login")]
+        public async Task<ActionResult<AccountsItem>> LoginToCloudAccount(LoginDTO loginCredentials)
         {
-            _context.Accounts.Add(accountsItem);
-            await _context.SaveChangesAsync();
+            var account = await _context.Accounts.Where(item => item.Email == loginCredentials.Email).FirstOrDefaultAsync();
 
-            return CreatedAtAction("GetAccountsItem", new { id = accountsItem.Id }, accountsItem);
+            if (account == null)
+            {
+                NotFound();
+            }
+            else if (account.Password != loginCredentials.Password)
+            {
+                BadRequest(new { error = "Invalid Password" });
+            }
+
+            var token = _jwtService.GenerateToken(account.Id, account.Email);
+
+            return Ok(new
+            {
+                UserId = account.Id,
+                Email = account.Email,
+                Token = token
+            });
         }
 
-        // DELETE: api/AccountsItems/id
-        [HttpDelete("{id}")]
+        // POST: api/AccountsItems/register
+        [HttpPost("register")]
+        public async Task<ActionResult<AccountsItem>> RegisterToCloudAccount(LoginDTO registerCredentials)
+        {
+            if(await _context.Accounts.AnyAsync(item => item.Email == registerCredentials.Email))
+            {
+                return BadRequest(new { error = "Email already exists" });
+            }
+
+            var newAccount = new AccountsItem
+            {
+                Email = registerCredentials.Email,
+                Password = registerCredentials.Password,
+            };
+
+            _context.Accounts.Add(newAccount);
+            await _context.SaveChangesAsync();
+
+            var token = _jwtService.GenerateToken(newAccount.Id, newAccount.Email);
+
+            return Ok(new
+            {
+                Id = newAccount.Id,
+                Email = newAccount.Email,
+                Token = token
+            });
+        }
+
+        // DELETE: api/AccountsItems/delete
+        [HttpDelete("delete")]
         public async Task<IActionResult> DeleteAccountsItem(long id)
         {
             var accountsItem = await _context.Accounts.FindAsync(id);
@@ -68,7 +115,7 @@ namespace Password_manager_api.Controllers
             return NoContent();
         }
 
-        [HttpGet("check")]
+        [HttpGet("check/{id}")]
         public async Task<ActionResult<bool>> AccountsItemExists(long id)
         {
             return await _context.Accounts.AnyAsync(e => e.Id == id);

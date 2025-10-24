@@ -15,7 +15,7 @@ namespace Password_manager_api.Models
         [JsonIgnore]
         [Required]
         public string Password { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public List<VaultBackups> VaultBackups { get; set; }
     }
 }

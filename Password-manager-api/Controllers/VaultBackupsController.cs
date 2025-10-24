@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NuGet.Protocol.Plugins;
 using Password_manager_api.Models;
 
 namespace Password_manager_api.Controllers
@@ -21,10 +22,10 @@ namespace Password_manager_api.Controllers
         }
 
         // GET: api/VaultBackups/UserId&OwnerId
-        [HttpGet("{UserId}/{OwnerId}")]
-        public async Task<ActionResult<VaultBackups>> GetVaultBackups(long userId, long ownerId)
+        [HttpGet("{userId}/{id}")]
+        public async Task<ActionResult<VaultBackups>> GetVaultBackups(long userId, long id)
         {
-            var vaultBackups = await _context.VaultBackups.Where(item => item.UserId == userId && item.OwnerId == ownerId).ToListAsync();
+            var vaultBackups = await _context.VaultBackups.Where(item => item.UserId == userId && item.Id == id).ToListAsync();
 
             if (vaultBackups == null)
             {
@@ -37,8 +38,8 @@ namespace Password_manager_api.Controllers
         // POST: api/VaultBackups
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<VaultBackups>> PostVaultBackups(VaultBackups vaultBackups, long userId)
-        {
+        public async Task<ActionResult<VaultBackups>> PostVaultBackups(VaultBackups vaultBackups)
+        { 
             _context.VaultBackups.Add(vaultBackups);
             await _context.SaveChangesAsync();
 
@@ -61,7 +62,7 @@ namespace Password_manager_api.Controllers
             return NoContent();
         }
 
-        private bool VaultBackupsExists(long id)
+        public bool VaultBackupsExists(long id)
         {
             return _context.VaultBackups.Any(e => e.Id == id);
         }

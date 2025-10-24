@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.SqlTypes;
+using System.Text.Json.Serialization;
 
 namespace Password_manager_api.Models
 {
@@ -10,13 +11,12 @@ namespace Password_manager_api.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
         public long UserId { get; set; }
-        [Required]
-        public long OwnerId { get; set; }
+        [JsonIgnore]
         [Required]
         public string EncryptedVaultBlob { get; set; }
-        public DateTime BackupTimestamp { get; set; }
+        public DateTime BackupTimestamp { get; set; } = DateTime.UtcNow;
 
-        [ForeignKey("")]
+        [ForeignKey("UserId")]
         public AccountsItem AccountsItem { get; set; }
     }
 }
