@@ -1,30 +1,40 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NuGet.Protocol.Plugins;
+using Password_manager_api.Entities;
 using Password_manager_api.Models;
 
 namespace Password_manager_api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class VaultBackupsController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly JWTService _jwtService;
+        private readonly ILogger _logger;
 
-        public VaultBackupsController(AppDbContext context)
+        public VaultBackupsController(AppDbContext context, JWTService jwtService, ILogger logger)
         {
             _context = context;
+            _jwtService = jwtService;
+            _logger = logger;
         }
 
-        // GET: api/VaultBackups/UserId&OwnerId
+        // GET: api/VaultBackups/UserId&Id
         [HttpGet("{userId}/{id}")]
-        public async Task<ActionResult<VaultBackups>> GetVaultBackups(long userId, long id)
+        public async Task<ActionResult<VaultBackups>> GetVaultBackups(long id)
         {
+
             var vaultBackups = await _context.VaultBackups.Where(item => item.UserId == userId && item.Id == id).ToListAsync();
 
             if (vaultBackups == null)
@@ -38,12 +48,51 @@ namespace Password_manager_api.Controllers
         // POST: api/VaultBackups
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<VaultBackups>> PostVaultBackups(VaultBackups vaultBackups)
-        { 
-            _context.VaultBackups.Add(vaultBackups);
+        public async Task<ActionResult> PostVaultBackups(VaultBackupDTO vaultBackup)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (!long.TryParse(userIdClaim, out long userId))
+            {
+                _logger.LogError("Failed to parse user ID");
+                return BadRequest(new {error = "Couldn't parse user ID"});
+            }
+
+            var newBackup = new VaultBackups
+            {
+                UserId = userId,
+                EncryptedVaultBlob = vaultBackup.EncryptedVaultBlob,
+            };
+
+            _context.VaultBackups.Add(newBackup);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetVaultBackups", new { id = vaultBackups.Id }, vaultBackups);
+            return Ok( new
+            {
+                VaultId = newBackup.Id
+            });
+        }
+
+        // PUT: api/VaultBackups
+        [HttpPut]
+        public async Task<ActionResult> UpdateVaultBackups(VaultBackupDTO vaultBackup)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if(!long.TryParse(userIdClaim, out long userId))
+            {
+                _logger.LogError("Failed to parse user ID");
+                return BadRequest(new { error = "Couldn't parse user ID"});
+            }
+
+            var storedVaultBackup = _context.VaultBackups.Where(item => item.UserId == userId && item.Id == vaultBackup.VaultID).FirstOrDefaultAsync();
+
+            if(storedVaultBackup == null)
+            {
+                _logger.LogError("Failed to find stored vault backup");
+                NotFound();
+            }
+
         }
 
         // DELETE: api/VaultBackups/5

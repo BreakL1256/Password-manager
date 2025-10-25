@@ -8,11 +8,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Password_manager_api.Entities;
 using Password_manager_api.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Password_manager_api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class AccountsItemsController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -48,6 +50,7 @@ namespace Password_manager_api.Controllers
         // POST: api/AccountsItems/login
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<ActionResult<AccountsItem>> LoginToCloudAccount(LoginDTO loginCredentials)
         {
             var account = await _context.Accounts.Where(item => item.Email == loginCredentials.Email).FirstOrDefaultAsync();
@@ -73,6 +76,7 @@ namespace Password_manager_api.Controllers
 
         // POST: api/AccountsItems/register
         [HttpPost("register")]
+        [AllowAnonymous]
         public async Task<ActionResult<AccountsItem>> RegisterToCloudAccount(LoginDTO registerCredentials)
         {
             if(await _context.Accounts.AnyAsync(item => item.Email == registerCredentials.Email))

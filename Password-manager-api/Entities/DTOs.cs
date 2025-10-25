@@ -9,9 +9,9 @@
         public string Password { get; set; }
     }
 
-    public class ResponseDTO
+    public class VaultBackupDTO
     {
-        public long Id { get; set; }
-        public string Email { get; set; }
+        public long VaultID { get; set; }
+        public string EncryptedVaultBlob { get; set; }
     }
 }
