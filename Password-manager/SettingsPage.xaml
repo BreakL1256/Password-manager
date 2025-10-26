@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="Password_manager.SettingsPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             Title="Settings">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="20" Padding="20">
+
+            <!-- Header -->
+            <Label Text="Settings" 
+                   FontSize="24" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Center" />
+
+            <!-- Appearance Section -->
+            <Frame BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#2C2C2C}" Padding="15">
+                <VerticalStackLayout Spacing="15">
+                    <Label Text="Appearance" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           TextColor="{AppThemeBinding Light=#333333, Dark=#FFFFFF}" />
+
+                    <!-- Theme Selection -->
+                    <VerticalStackLayout Spacing="10">
+                        <Picker x:Name="ThemePicker"
+                                Title="Select Theme"
+                                SelectedIndexChanged="OnThemeChanged">
+                            <Picker.Items>
+                                <x:String>System Default</x:String>
+                                <x:String>Light Mode</x:String>
+                                <x:String>Dark Mode</x:String>
+                            </Picker.Items>
+                        </Picker>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Close Button -->
+            <Button Text="Close" 
+                    Clicked="OnCloseClicked" 
+                    BackgroundColor="#007ACC" 
+                    TextColor="White" 
+                    HorizontalOptions="Center" 
+                    WidthRequest="100" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
