@@ -14,7 +14,6 @@
                             Spacing="10"
                             VerticalOptions="Center">
             <Button Text="Sync" Command="{Binding Cloud}"/>
-            <Button Text="Settings" Command="{Binding SettingsCommand}"/>
             <Button Text="Logout" 
                     Command="{Binding LogoutFromAccount}" 
                     HeightRequest="30"/>

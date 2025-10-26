@@ -11,16 +11,14 @@ namespace Password_manager.Entities
     }
     public class PasswordItem
     {
-        public PasswordItem(string Title, string Username, string Password, string Category)
+        public PasswordItem(string Title, string Username, string Password)
         {
             this.Title = Title ?? "";
             this.Username = Username;
             this.Password = Password;
-            this.Category = Category ?? "General";
         }
         public string Title { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
-        public string Category { get; set; }
     }
 }

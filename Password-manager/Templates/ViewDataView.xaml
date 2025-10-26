@@ -19,13 +19,5 @@
             x:Name="PasswordField"
             VerticalOptions="Center" 
             HorizontalOptions="Center"/>
-        <Label 
-            Text="Password"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center"/>
-        <Label
-            x:Name="CategoryField"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center"/>
     </VerticalStackLayout>
 </ContentView>
