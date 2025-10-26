@@ -9,5 +9,6 @@ public partial class ViewDataView : ContentView
 
 		UsernameField.Text = Item.Username;
 		PasswordField.Text = Item.Password;
-	}
+		CategoryField.Text = Item.Category;
+    }
 }
