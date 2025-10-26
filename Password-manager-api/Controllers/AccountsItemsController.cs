@@ -27,28 +27,28 @@ namespace Password_manager_api.Controllers
         }
 
         // GET: api/AccountsItems
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<AccountsItem>>> GetAccounts()
-        {
-            return await _context.Accounts.ToListAsync();
-        }
+        //[HttpGet]
+        //public async Task<ActionResult<IEnumerable<AccountsItem>>> GetAccounts()
+        //{
+        //    return await _context.Accounts.ToListAsync();
+        //}
 
-        // GET: api/AccountsItems/id
-        [HttpGet("{id}")]
-        public async Task<ActionResult<AccountsItem>> GetAccountsItem(long id)
-        {
-            var accountsItem = await _context.Accounts.FindAsync(id);
+        //// GET: api/AccountsItems/id
+        //[HttpGet("{id}")]
+        //public async Task<ActionResult<AccountsItem>> GetAccountsItem(long id)
+        //{
+        //    var accountsItem = await _context.Accounts.FindAsync(id);
 
-            if (accountsItem == null)
-            {
-                return NotFound();
-            }
+        //    if (accountsItem == null)
+        //    {
+        //        return NotFound();
+        //    }
 
-            return accountsItem;
-        }
+        //    return accountsItem;
+        //}
 
         // POST: api/AccountsItems/login
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        //Logs in user and issues token
         [HttpPost("login")]
         [AllowAnonymous]
         public async Task<ActionResult<AccountsItem>> LoginToCloudAccount(LoginDTO loginCredentials)
@@ -74,6 +74,7 @@ namespace Password_manager_api.Controllers
             });
         }
 
+        // registers new user and issues token
         // POST: api/AccountsItems/register
         [HttpPost("register")]
         [AllowAnonymous]
@@ -104,25 +105,25 @@ namespace Password_manager_api.Controllers
         }
 
         // DELETE: api/AccountsItems/delete
-        [HttpDelete("delete")]
-        public async Task<IActionResult> DeleteAccountsItem(long id)
-        {
-            var accountsItem = await _context.Accounts.FindAsync(id);
-            if (accountsItem == null)
-            {
-                return NotFound();
-            }
+        //[HttpDelete("delete")]
+        //public async Task<IActionResult> DeleteAccountsItem(long id)
+        //{
+        //    var accountsItem = await _context.Accounts.FindAsync(id);
+        //    if (accountsItem == null)
+        //    {
+        //        return NotFound();
+        //    }
 
-            _context.Accounts.Remove(accountsItem);
-            await _context.SaveChangesAsync();
+        //    _context.Accounts.Remove(accountsItem);
+        //    await _context.SaveChangesAsync();
 
-            return NoContent();
-        }
+        //    return NoContent();
+        //}
 
-        [HttpGet("check/{id}")]
-        public async Task<ActionResult<bool>> AccountsItemExists(long id)
-        {
-            return await _context.Accounts.AnyAsync(e => e.Id == id);
-        }
+        //[HttpGet("check/{id}")]
+        //public async Task<ActionResult<bool>> AccountsItemExists(long id)
+        //{
+        //    return await _context.Accounts.AnyAsync(e => e.Id == id);
+        //}
     }
 }

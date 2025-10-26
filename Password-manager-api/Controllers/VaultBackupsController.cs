@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration.UserSecrets;
 using NuGet.Protocol.Plugins;
 using Password_manager_api.Entities;
 using Password_manager_api.Models;
@@ -30,23 +31,36 @@ namespace Password_manager_api.Controllers
             _logger = logger;
         }
 
-        // GET: api/VaultBackups/UserId&Id
-        [HttpGet("{userId}/{id}")]
-        public async Task<ActionResult<VaultBackups>> GetVaultBackups(long id)
+        // Restores vault
+        // GET: api/VaultBackups/VaultId
+        [HttpGet("{VaultId}")]
+        public async Task<ActionResult<VaultBackups>> GetVaultBackups(long vaultId)
         {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            var vaultBackups = await _context.VaultBackups.Where(item => item.UserId == userId && item.Id == id).ToListAsync();
-
-            if (vaultBackups == null)
+            if (!long.TryParse(userIdClaim, out long userId))
             {
+                _logger.LogError("Failed to parse user ID");
+                return BadRequest(new { error = "Couldn't parse user ID" });
+            }
+
+            var storedVaultBackup = await _context.VaultBackups.Where(item => item.UserId == userId && item.Id == vaultId).FirstOrDefaultAsync();
+
+            if (storedVaultBackup == null)
+            {
+                _logger.LogError("Backup couldn't be found:\n user ID: {userId}, vault ID: {vaultId}", userId, vaultId);
                 return NotFound();
             }
 
-            return vaultBackups[0];
+            _logger.LogInformation("Vault backup restored succesfully");
+            return Ok(new
+            {
+                EncryptedVaultBlob = storedVaultBackup.EncryptedVaultBlob,
+            });
         }
 
         // POST: api/VaultBackups
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        //Initiates new vault that hasn't yet existed
         [HttpPost]
         public async Task<ActionResult> PostVaultBackups(VaultBackupDTO vaultBackup)
         {
@@ -67,15 +81,17 @@ namespace Password_manager_api.Controllers
             _context.VaultBackups.Add(newBackup);
             await _context.SaveChangesAsync();
 
+            _logger.LogInformation("Vault backup created succesfully");
             return Ok( new
             {
                 VaultId = newBackup.Id
             });
         }
 
+        //Updates already existing vault
         // PUT: api/VaultBackups
-        [HttpPut]
-        public async Task<ActionResult> UpdateVaultBackups(VaultBackupDTO vaultBackup)
+        [HttpPut("{VaultId}")]
+        public async Task<ActionResult> UpdateVaultBackups([FromBody] VaultBackupDTO vaultBackup,[FromRoute] long vaultId)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
@@ -85,7 +101,7 @@ namespace Password_manager_api.Controllers
                 return BadRequest(new { error = "Couldn't parse user ID"});
             }
 
-            var storedVaultBackup = _context.VaultBackups.Where(item => item.UserId == userId && item.Id == vaultBackup.VaultID).FirstOrDefaultAsync();
+            var storedVaultBackup = await _context.VaultBackups.Where(item => item.UserId == userId && item.Id == vaultId).FirstOrDefaultAsync();
 
             if(storedVaultBackup == null)
             {
@@ -93,27 +109,35 @@ namespace Password_manager_api.Controllers
                 NotFound();
             }
 
+            storedVaultBackup.EncryptedVaultBlob = vaultBackup.EncryptedVaultBlob;
+            storedVaultBackup.BackupTimestamp = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Vault backup updated succesfully");
+            return Ok();
+
         }
 
         // DELETE: api/VaultBackups/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteVaultBackups(long id)
-        {
-            var vaultBackups = await _context.VaultBackups.FindAsync(id);
-            if (vaultBackups == null)
-            {
-                return NotFound();
-            }
+        //[HttpDelete("{id}")]
+        //public async Task<IActionResult> DeleteVaultBackups(long id)
+        //{
+        //    var vaultBackups = await _context.VaultBackups.FindAsync(id);
+        //    if (vaultBackups == null)
+        //    {
+        //        return NotFound();
+        //    }
 
-            _context.VaultBackups.Remove(vaultBackups);
-            await _context.SaveChangesAsync();
+        //    _context.VaultBackups.Remove(vaultBackups);
+        //    await _context.SaveChangesAsync();
 
-            return NoContent();
-        }
+        //    return NoContent();
+        //}
 
-        public bool VaultBackupsExists(long id)
-        {
-            return _context.VaultBackups.Any(e => e.Id == id);
-        }
+        //public bool VaultBackupsExists(long id)
+        //{
+        //    return _context.VaultBackups.Any(e => e.Id == id);
+        //}
     }
 }

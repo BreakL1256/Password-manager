@@ -11,7 +11,6 @@
 
     public class VaultBackupDTO
     {
-        public long VaultID { get; set; }
         public string EncryptedVaultBlob { get; set; }
     }
 }
