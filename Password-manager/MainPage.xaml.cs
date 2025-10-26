@@ -8,6 +8,7 @@ using System.Diagnostics;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Storage;
+using Password_manager.Services;
 
 
 namespace Password_manager

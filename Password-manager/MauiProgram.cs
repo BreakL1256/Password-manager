@@ -1,8 +1,8 @@
 ﻿using Password_manager.Shared;
-using Password_manager.Entities;
 using Password_manager.Templates;
 using Microsoft.Extensions.Logging;
 using CommunityToolkit.Maui;
+using Password_manager.Services;
 
 namespace Password_manager
 {

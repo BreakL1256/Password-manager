@@ -7,8 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using Microsoft.Maui.Storage;
+using Password_manager.Entities;
 
-namespace Password_manager.Entities
+namespace Password_manager.Services
 {
     public class RequestHandler
     {
@@ -17,8 +18,8 @@ namespace Password_manager.Entities
         public RequestHandler(SqliteConnectionFactory connectionFactory) 
         { 
             _connectionFactory = connectionFactory;
-            var tool = new EncryptionAndHashingMethods();
-            _tool = tool;
+            _tool = new EncryptionAndHashingMethods();
+            
         }
 
         // Section for interacting with data stored in the vault
@@ -179,7 +180,7 @@ namespace Password_manager.Entities
             }
         }
 
-        public async Task<int> GetUserAccountId(string username)
+        public async Task<long> GetUserAccountId(string username)
         {
             ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
             try

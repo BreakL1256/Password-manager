@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using CommunityToolkit.Mvvm.Input;
-using Password_manager.Entities;
+using Password_manager.Services;
 
 namespace Password_manager;
 
