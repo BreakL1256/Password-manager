@@ -30,6 +30,21 @@
             VerticalOptions="Center" 
             HorizontalOptions="Center"
             Width="100"/>
+        <Label
+              Text="Category"
+              VerticalOptions="Center" 
+              HorizontalOptions="Center"/>
+        <Entry
+            x:Name="CategoryField"
+            VerticalOptions="Center" 
+            HorizontalOptions="Center"
+            Width="100"/>
         <Button Text="Add" Clicked="OnNewDataSubmit"/>
+        <Button x:Name="GeneratePasswordButton" 
+        Text="Generate Secure Password" 
+        Clicked="OnGeneratePasswordClicked" 
+        BackgroundColor="#007ACC" 
+        TextColor="White" 
+        Margin="0,5,0,0" />
     </VerticalStackLayout>
 </ContentView>

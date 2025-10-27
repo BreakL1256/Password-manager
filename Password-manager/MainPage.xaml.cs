@@ -13,12 +13,13 @@ using Password_manager.Services;
 
 namespace Password_manager
 {
-   
+
     public partial class MainPage : ContentPage, INotifyPropertyChanged
     {
         public IAsyncRelayCommand Cloud { get; }
         public IAsyncRelayCommand LogoutFromAccount { get; }
         public IAsyncRelayCommand<PasswordItem> DeleteCommand { get; }
+        public IAsyncRelayCommand SettingsCommand { get; }
 
         private readonly IServiceProvider _services;
 
@@ -36,6 +37,7 @@ namespace Password_manager
             Cloud = new AsyncRelayCommand(StoreOnCloud);
             LogoutFromAccount = new AsyncRelayCommand(Logout);
             DeleteCommand = new AsyncRelayCommand<PasswordItem>(DeleteSelectedData);
+            SettingsCommand = new AsyncRelayCommand(OpenSettings);
             BindingContext = this;
         }
 
@@ -59,9 +61,16 @@ namespace Password_manager
                 Debug.WriteLine("Failed to logout: " + ex);
             }
         }
+
+        private async Task OpenSettings()
+        {
+            var settingsPage = new SettingsPage();
+            await Navigation.PushModalAsync(settingsPage);
+        }
+
         private async Task DeleteSelectedData(PasswordItem? Item)
         {
-            if(Item == null)
+            if (Item == null)
             {
                 return;
             }

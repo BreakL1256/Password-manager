@@ -9,6 +9,33 @@ namespace Password_manager
 {
     public partial class App : Application
     {
+        public App()
+        {
+            LoadTheme();
+            InitializeComponent();
+            
+
+            MainPage = new AppShell();
+        }
+
+        private void LoadTheme()
+        {
+            var savedTheme = Preferences.Get("app_theme", "System Default");
+
+            switch (savedTheme)
+            {
+                case "Light Mode":
+                    Current.UserAppTheme = AppTheme.Light;
+                    break;
+                case "Dark Mode":
+                    Current.UserAppTheme = AppTheme.Dark;
+                    break;
+                case "System Default":
+                default:
+                    Current.UserAppTheme = AppTheme.Unspecified;
+                    break;
+            }
+        }
         private readonly SqliteConnectionFactory _connectionFactory;
         public App(SqliteConnectionFactory connectionFactory)
         {
