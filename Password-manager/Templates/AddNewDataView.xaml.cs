@@ -13,20 +13,24 @@ public partial class AddNewDataView : ContentView
     private const string DigitChars = "0123456789";
     private const string SpecialChars = "!@#$%^&*()-_=+[]{}|;:,.<>?";
 
+    private string _selectedCategory = "General";
+
     public AddNewDataView(RequestHandler handler)
     {
         InitializeComponent();
 
         _handler = handler;
+
+        UpdateCategorySelection("General");
     }
 
     public Func<Task> OnDataAdded { get; set; }
 
     private async void OnNewDataSubmit(object sender, EventArgs e)
     {
-        if (_handler != null && TitleField.Text != "" && UsernameField.Text != "" && PasswordField.Text != "" && CategoryField.Text != "")
+        if (_handler != null && TitleField.Text != "" && UsernameField.Text != "" && PasswordField.Text != "")
         {
-            PasswordItem newItem = new PasswordItem(TitleField.Text, UsernameField.Text, PasswordField.Text, CategoryField.Text);
+            PasswordItem newItem = new PasswordItem(TitleField.Text, UsernameField.Text, PasswordField.Text, _selectedCategory);
             try
             {
                 await _handler.SaveDataToAccount(newItem);
@@ -47,6 +51,60 @@ public partial class AddNewDataView : ContentView
     {
         PasswordField.Text = GenerateSafePassword();
     }
+
+    private void OnCategoryButtonClicked(object sender, EventArgs e)
+    {
+        var button = (Button)sender;
+        UpdateCategorySelection(button.Text);
+    }
+
+    private void ResetCategoryButtons()
+    {
+        var defaultBackground = Colors.Transparent; // Set to transparent
+        var defaultBorder = Application.Current.RequestedTheme == AppTheme.Light ?
+            Color.FromArgb("#C6C6C8") : Color.FromArgb("#636366");
+        var defaultTextColor = Application.Current.RequestedTheme == AppTheme.Light ?
+            Color.FromArgb("#000000") : Color.FromArgb("#FFFFFF");
+
+        GeneralCategoryButton.BackgroundColor = defaultBackground;
+        GeneralCategoryButton.BorderColor = defaultBorder;
+        GeneralCategoryButton.TextColor = defaultTextColor;
+
+        WorkCategoryButton.BackgroundColor = defaultBackground;
+        WorkCategoryButton.BorderColor = defaultBorder;
+        WorkCategoryButton.TextColor = defaultTextColor;
+
+        OtherCategoryButton.BackgroundColor = defaultBackground;
+        OtherCategoryButton.BorderColor = defaultBorder;
+        OtherCategoryButton.TextColor = defaultTextColor;
+    }
+
+    private void UpdateCategorySelection(string category)
+    {
+        _selectedCategory = category;
+
+        ResetCategoryButtons();
+
+        switch (category)
+        {
+            case "General":
+                GeneralCategoryButton.BackgroundColor = Colors.Transparent;
+                GeneralCategoryButton.BorderColor = Color.FromArgb("#007AFF");
+                GeneralCategoryButton.TextColor = Color.FromArgb("#007AFF");
+                break;
+            case "Work":
+                WorkCategoryButton.BackgroundColor = Colors.Transparent;
+                WorkCategoryButton.BorderColor = Color.FromArgb("#FFCC00");
+                WorkCategoryButton.TextColor = Color.FromArgb("#FF9500");
+                break;
+            case "Other":
+                OtherCategoryButton.BackgroundColor = Colors.Transparent;
+                OtherCategoryButton.BorderColor = Color.FromArgb("#FF3B30");
+                OtherCategoryButton.TextColor = Color.FromArgb("#FF3B30");
+                break;
+        }
+    }
+
 
     private string GenerateSafePassword(int length = 20)
     {

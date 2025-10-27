@@ -6,46 +6,104 @@
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="60"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <HorizontalStackLayout Grid.Row="0"
-                            Spacing="10"
-                            VerticalOptions="Center">
-            <Button Text="Sync" Command="{Binding Cloud}"/>
-            <Button Text="Settings" Command="{Binding SettingsCommand}"/>
-            <Button Text="Logout" 
-                    Command="{Binding LogoutFromAccount}" 
-                    HeightRequest="30"/>
-        </HorizontalStackLayout>
+        <!-- Header Bar -->
+        <Grid Grid.Row="0" 
+              BackgroundColor="{AppThemeBinding Light=#FBFBFD, Dark=#1C1C1E}"
+              HeightRequest="60"
+              Padding="20,0">
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- App Title -->
+            <Label Grid.Column="0"
+                   Text="Password manager"
+                   FontSize="22"
+                   FontAttributes="Bold"
+                   VerticalOptions="Center"
+                   TextColor="{AppThemeBinding Light=#000000, Dark=#FFFFFF}"/>
+
+            <!-- Action Buttons -->
+            <HorizontalStackLayout Grid.Column="1" 
+                                   Spacing="16"
+                                   VerticalOptions="Center">
+                <Button Text="Sync" 
+                        Command="{Binding Cloud}"
+                        BackgroundColor="Transparent"
+                        TextColor="{AppThemeBinding Light=#007AFF, Dark=#0A84FF}"
+                        BorderWidth="0"
+                        HeightRequest="36"
+                        FontSize="14"/>
+
+                <Button Text="Settings" 
+                        Command="{Binding SettingsCommand}"
+                        BackgroundColor="Transparent"
+                        TextColor="{AppThemeBinding Light=#007AFF, Dark=#0A84FF}"
+                        BorderWidth="0"
+                        HeightRequest="36"
+                        FontSize="14"/>
+
+                <Button Text="Logout" 
+                        Command="{Binding LogoutFromAccount}"
+                        BackgroundColor="Transparent"
+                        TextColor="{AppThemeBinding Light=#FF3B30, Dark=#FF453A}"
+                        BorderWidth="0"
+                        HeightRequest="36"
+                        FontSize="14"/>
+            </HorizontalStackLayout>
+        </Grid>
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="280"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <StackLayout Grid.Column="0">
-                <HorizontalStackLayout Spacing="10" Padding="10">
-                    <Button Text="Add" Clicked="OnShowAddView"/>
-                </HorizontalStackLayout>
-                <CollectionView 
-                                Grid.Column="0"
-                                BackgroundColor="white"
+
+            <Grid Grid.Column="0" 
+                  BackgroundColor="{AppThemeBinding Light=#F2F2F7, Dark=#2C2C2E}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Button Grid.Row="0"
+                        Text="Add Password"
+                        FontSize="16"
+                        Clicked="OnShowAddView"
+                        BackgroundColor="{AppThemeBinding Light=#007AFF, Dark=#0A84FF}"
+                        TextColor="White"
+                        Margin="16,16,16,12"
+                        HeightRequest="44"
+                        CornerRadius="10"
+                        BorderWidth="0"/>
+
+                <CollectionView Grid.Row="1"
                                 ItemsSource="{Binding PasswordList}"
                                 SelectedItem="{Binding SelectedPassword}"
-                                SelectionMode="Single">
+                                SelectionMode="Single"
+                                BackgroundColor="Transparent">
+
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
-                            <Grid>
+                            <Grid HeightRequest="50" 
+                                  Padding="16,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
+
                                 <Label Grid.Column="0"
                                        Text="{Binding Title}"
-                                       TextColor="Black"
-                                       VerticalOptions="Center">    
+                                       FontSize="16"
+                                       TextColor="{AppThemeBinding Light=#000000, Dark=#FFFFFF}"
+                                       VerticalOptions="Center"
+                                       Margin="0">
                                     <Label.GestureRecognizers>
                                         <TapGestureRecognizer
                                             Tapped="OnShowDataView"
@@ -54,16 +112,19 @@
                                 </Label>
 
                                 <Button Grid.Column="1"
-                                        Text="&#8942;"
-                                        Width="20"
-                                        Height="20"
-                                        BackgroundColor="Transparent">
+                                        Text="•••"
+                                        BackgroundColor="Transparent"
+                                        TextColor="{AppThemeBinding Light=#8E8E93, Dark=#8E8E93}"
+                                        WidthRequest="40"
+                                        HeightRequest="40"
+                                        BorderWidth="0"
+                                        FontSize="12">
                                     <FlyoutBase.ContextFlyout>
                                         <MenuFlyout>
                                             <MenuFlyoutItem 
-                                                            Text="Delete"
-                                                            Command="{Binding Source={x:Reference MainPageRoot}, Path=DeleteCommand}"
-                                                            CommandParameter="{Binding}"/>
+                                                Text="Delete"
+                                                Command="{Binding Source={x:Reference MainPageRoot}, Path=DeleteCommand}"
+                                                CommandParameter="{Binding}"/>
                                         </MenuFlyout>
                                     </FlyoutBase.ContextFlyout>
                                 </Button>
@@ -74,14 +135,13 @@
                     <CollectionView.ItemsLayout>
                         <LinearItemsLayout Orientation="Vertical"/>
                     </CollectionView.ItemsLayout>
-            
                 </CollectionView>
-            </StackLayout>
-            <ContentView 
-                        x:Name="DynamicContentView"
-                        BackgroundColor="DarkGray"
-                        Grid.Column="1"/>
+            </Grid>
+
+            <ContentView x:Name="DynamicContentView"
+                        Grid.Column="1"
+                        BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#000000}"
+                        Padding="20"/>
         </Grid>
     </Grid>
-
 </ContentPage>
