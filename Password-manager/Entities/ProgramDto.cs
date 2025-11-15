@@ -30,6 +30,8 @@ namespace Password_manager.Entities {
         public string Password { get; set; }
         public string KEKSalt { get; set; }
         public string EncryptedDEK { get; set; }
+        public string UserIdentifier {  get; set; }
+
 
         // Data for managing cloud connection
         public bool CloudLinked { get; set; } = false;

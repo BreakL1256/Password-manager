@@ -20,7 +20,7 @@
             VerticalOptions="Center" 
             HorizontalOptions="Center"/>
         <Label 
-            Text="Password"
+            Text="Category"
             VerticalOptions="Center" 
             HorizontalOptions="Center"/>
         <Label

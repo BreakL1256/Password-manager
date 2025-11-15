@@ -25,6 +25,8 @@ namespace Password_manager
 #endif
             builder.Services.AddSingleton<SqliteConnectionFactory>();
             builder.Services.AddSingleton<RequestHandler>();
+            builder.Services.AddSingleton<RestServiceHelper>();
+            builder.Services.AddSingleton<RestService>();
             builder.Services.AddTransient<AddNewDataView>();
             return builder.Build();
         }

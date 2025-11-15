@@ -288,10 +288,11 @@ namespace Password_manager.Services
             // Password hashing for storage
             string hashedPassword = _tool.HashString(password);
 
+            string userIdentifier = Convert.ToBase64String(_tool.GenerateKeys(32));
             try
             {
-                await database.ExecuteAsync("INSERT INTO UserAccounts (Username, Password, KEKSalt, EncryptedDek) VALUES (?, ?, ?, ?)",
-                    username, hashedPassword, Convert.ToBase64String(KEKSalt), encryptedDEKInBase64);
+                await database.ExecuteAsync("INSERT INTO UserAccounts (Username, Password, KEKSalt, EncryptedDek, UserIdentifier) VALUES (?, ?, ?, ?, ?)",
+                    username, hashedPassword, Convert.ToBase64String(KEKSalt), encryptedDEKInBase64, userIdentifier);
 
             }
             catch (Exception ex)

@@ -7,10 +7,12 @@
     {
         public string Email { get; set; }
         public string Password { get; set; }
+        public string UserIdentifier { get; set; }
     }
 
     public class VaultBackupDTO
     {
         public string EncryptedVaultBlob { get; set; }
+        public string VaultOwnerId { get; set; }
     }
 }

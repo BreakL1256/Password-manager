@@ -51,6 +51,7 @@ namespace Password_manager
             Preferences.Remove("CurrentUserId");
             Preferences.Remove("CurrentUsername");
             Preferences.Remove("IsLoggedIn");
+            Preferences.Remove("IsFirstBackup");
             SecureStorage.Default.Remove("CurrentPassword");
             try
             {

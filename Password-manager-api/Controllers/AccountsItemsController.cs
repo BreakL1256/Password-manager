@@ -54,6 +54,7 @@ namespace Password_manager_api.Controllers
         public async Task<ActionResult<AccountsItem>> LoginToCloudAccount(LoginDTO loginCredentials)
         {
             var account = await _context.Accounts.Where(item => item.Email == loginCredentials.Email).FirstOrDefaultAsync();
+            bool isFirstbackup = false;
 
             if (account == null)
             {
@@ -64,13 +65,21 @@ namespace Password_manager_api.Controllers
                 BadRequest(new { error = "Invalid Password" });
             }
 
+            var vault = await _context.VaultBackups.Where(item => item.UserId == account.Id && item.VaultOwnerId == loginCredentials.UserIdentifier).FirstOrDefaultAsync();
+
+            if (vault != null)
+            {
+                isFirstbackup = true;
+            }
+
             var token = _jwtService.GenerateToken(account.Id, account.Email);
 
             return Ok(new
             {
                 UserId = account.Id,
                 Email = account.Email,
-                Token = token
+                Token = token,
+                isFirstbackup = isFirstbackup,
             });
         }
 
@@ -94,13 +103,12 @@ namespace Password_manager_api.Controllers
             _context.Accounts.Add(newAccount);
             await _context.SaveChangesAsync();
 
-            var token = _jwtService.GenerateToken(newAccount.Id, newAccount.Email);
+            //var token = _jwtService.GenerateToken(newAccount.Id, newAccount.Email);
 
             return Ok(new
             {
                 Id = newAccount.Id,
                 Email = newAccount.Email,
-                Token = token
             });
         }
 

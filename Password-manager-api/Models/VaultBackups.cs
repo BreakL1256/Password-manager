@@ -16,6 +16,8 @@ namespace Password_manager_api.Models
         public string EncryptedVaultBlob { get; set; }
         [Column(TypeName = "timestamp without time zone")]
         public DateTime BackupTimestamp { get; set; } = DateTime.UtcNow;
+        [Required]
+        public string VaultOwnerId { get; set; }
         [ForeignKey("UserId")]
         public AccountsItem AccountsItem { get; set; }
     }
