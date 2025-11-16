@@ -2,49 +2,168 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Password_manager.Templates.AddNewDataView">
-    <VerticalStackLayout>
-        <Label 
-            Text="Title"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-        <Entry
-            x:Name="TitleField"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center"
-            Width="100"/>
-        <Label
-            Text="Username"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center"/>
-        <Entry
-            x:Name="UsernameField"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center"
-            Width="100"/>
-        <Label
-              Text="Password"
-              VerticalOptions="Center" 
-              HorizontalOptions="Center"/>
-        <Entry
-            x:Name="PasswordField"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center"
-            Width="100"/>
-        <Label
-              Text="Category"
-              VerticalOptions="Center" 
-              HorizontalOptions="Center"/>
-        <Entry
-            x:Name="CategoryField"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center"
-            Width="100"/>
-        <Button Text="Add" Clicked="OnNewDataSubmit"/>
-        <Button x:Name="GeneratePasswordButton" 
-        Text="Generate Secure Password" 
-        Clicked="OnGeneratePasswordClicked" 
-        BackgroundColor="#007ACC" 
-        TextColor="White" 
-        Margin="0,5,0,0" />
-    </VerticalStackLayout>
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="0" Padding="20">
+
+            <Border BackgroundColor="{AppThemeBinding Light=#F2F2F7, Dark=#2C2C2E}"
+                   Padding="16"
+                   StrokeShape="RoundRectangle 10"
+                   Stroke="Transparent"
+                   Margin="0,0,0,16">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Title"
+                           FontSize="13"
+                           TextColor="{AppThemeBinding Light=#8E8E93, Dark=#8E8E93}"/>
+                    <Entry x:Name="TitleField"
+                           FontSize="17"
+                           BackgroundColor="Transparent"
+                           TextColor="{AppThemeBinding Light=#000000, Dark=#FFFFFF}"
+                           Placeholder="Enter title"
+                           PlaceholderColor="{AppThemeBinding Light=#C6C6C8, Dark=#636366}"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border BackgroundColor="{AppThemeBinding Light=#F2F2F7, Dark=#2C2C2E}"
+                   Padding="16"
+                   StrokeShape="RoundRectangle 10"
+                   Stroke="Transparent"
+                   Margin="0,0,0,16">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Category"
+                           FontSize="13"
+                           TextColor="{AppThemeBinding Light=#8E8E93, Dark=#8E8E93}"/>
+
+                    <HorizontalStackLayout Spacing="12">
+                        <Button x:Name="GeneralCategoryButton"
+                                Text="General"
+                                Clicked="OnCategoryButtonClicked"
+                                TextColor="{AppThemeBinding Light=#000000, Dark=#FFFFFF}"
+                                HeightRequest="44"
+                                CornerRadius="10"
+                                BorderWidth="1"
+                                BorderColor="{AppThemeBinding Light=#C6C6C8, Dark=#636366}"
+                                FontSize="14">
+                            <Button.HorizontalOptions>
+                                <OnPlatform x:TypeArguments="LayoutOptions">
+                                    <On Platform="iOS, Android" Value="FillAndExpand" />
+                                    <On Platform="WinUI" Value="Center" />
+                                </OnPlatform>
+                            </Button.HorizontalOptions>
+                        </Button>
+
+                        <Button x:Name="WorkCategoryButton"
+                                Text="Work"
+                                Clicked="OnCategoryButtonClicked"
+                                TextColor="{AppThemeBinding Light=#000000, Dark=#FFFFFF}"
+                                HeightRequest="44"
+                                CornerRadius="10"
+                                BorderWidth="1"
+                                BorderColor="{AppThemeBinding Light=#C6C6C8, Dark=#636366}"
+                                FontSize="14">
+                            <Button.HorizontalOptions>
+                                <OnPlatform x:TypeArguments="LayoutOptions">
+                                    <On Platform="iOS, Android" Value="FillAndExpand" />
+                                    <On Platform="WinUI" Value="Center" />
+                                </OnPlatform>
+                            </Button.HorizontalOptions>
+                        </Button>
+
+
+                        <Button x:Name="OtherCategoryButton"
+                                Text="Other"
+                                Clicked="OnCategoryButtonClicked"
+                                TextColor="{AppThemeBinding Light=#000000, Dark=#FFFFFF}"
+                                HeightRequest="44"
+                                CornerRadius="10"
+                                BorderWidth="1"
+                                BorderColor="{AppThemeBinding Light=#C6C6C8, Dark=#636366}"
+                                FontSize="14">
+                            <Button.HorizontalOptions>
+                                <OnPlatform x:TypeArguments="LayoutOptions">
+                                    <On Platform="iOS, Android" Value="FillAndExpand" />
+                                    <On Platform="WinUI" Value="Center" />
+                                </OnPlatform>
+                            </Button.HorizontalOptions>
+                        </Button>
+                    </HorizontalStackLayout>
+
+                    <HorizontalStackLayout x:Name="CategoryIndicatorLayout" 
+                                         Spacing="8" 
+                                         HorizontalOptions="Start"
+                                         IsVisible="False">
+                        <Frame BackgroundColor="Blue"
+                               HeightRequest="12"
+                               WidthRequest="12"
+                               CornerRadius="6"
+                               Padding="0"
+                               HasShadow="False"/>
+                        <Label x:Name="SelectedCategoryLabel"
+                               FontSize="14"
+                               TextColor="{AppThemeBinding Light=#000000, Dark=#FFFFFF}"
+                               VerticalTextAlignment="Center"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border BackgroundColor="{AppThemeBinding Light=#F2F2F7, Dark=#2C2C2E}"
+                   Padding="16"
+                   StrokeShape="RoundRectangle 10"
+                   Stroke="Transparent"
+                   Margin="0,0,0,16">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Username"
+                           FontSize="13"
+                           TextColor="{AppThemeBinding Light=#8E8E93, Dark=#8E8E93}"/>
+                    <Entry x:Name="UsernameField"
+                           FontSize="17"
+                           BackgroundColor="Transparent"
+                           TextColor="{AppThemeBinding Light=#000000, Dark=#FFFFFF}"
+                           Placeholder="Enter username"
+                           PlaceholderColor="{AppThemeBinding Light=#C6C6C8, Dark=#636366}"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border BackgroundColor="{AppThemeBinding Light=#F2F2F7, Dark=#2C2C2E}"
+                   Padding="16"
+                   StrokeShape="RoundRectangle 10"
+                   Stroke="Transparent"
+                   Margin="0,0,0,24">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Password"
+                           FontSize="13"
+                           TextColor="{AppThemeBinding Light=#8E8E93, Dark=#8E8E93}"/>
+                    <Entry x:Name="PasswordField"
+                           FontSize="17"
+                           BackgroundColor="Transparent"
+                           TextColor="{AppThemeBinding Light=#000000, Dark=#FFFFFF}"
+                           Placeholder="Enter password"
+                           PlaceholderColor="{AppThemeBinding Light=#C6C6C8, Dark=#636366}"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <VerticalStackLayout Spacing="12">
+                <Button Text="Add" 
+                        Clicked="OnNewDataSubmit"
+                        BackgroundColor="{AppThemeBinding Light=#007AFF, Dark=#0A84FF}"
+                        TextColor="White"
+                        HeightRequest="50"
+                        CornerRadius="10"
+                        BorderWidth="0"
+                        FontSize="16"/>
+
+                <Button x:Name="GeneratePasswordButton" 
+                        Text="Generate Secure Password" 
+                        Clicked="OnGeneratePasswordClicked" 
+                        BackgroundColor="{AppThemeBinding Light=#F2F2F7, Dark=#2C2C2E}"
+                        TextColor="{AppThemeBinding Light=#007AFF, Dark=#0A84FF}"
+                        HeightRequest="44"
+                        CornerRadius="10"
+                        BorderWidth="0"
+                        FontSize="16"/>
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
 </ContentView>
