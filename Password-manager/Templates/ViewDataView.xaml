@@ -2,30 +2,81 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Password_manager.Templates.ViewDataView">
-    <VerticalStackLayout>
-        <Label 
-            Text="Username"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-        <Label
-            x:Name="UsernameField"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center"/>
-        <Label 
-            Text="Password"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center"/>
-        <Label
-            x:Name="PasswordField"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center"/>
-        <Label 
-            Text="Category"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center"/>
-        <Label
-            x:Name="CategoryField"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center"/>
-    </VerticalStackLayout>
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="0" Padding="20">
+
+            <Border BackgroundColor="{AppThemeBinding Light=#F2F2F7, Dark=#2C2C2E}"
+                   Padding="16"
+                   StrokeShape="RoundRectangle 10"
+                   Stroke="Transparent"
+                   Margin="0,0,0,16">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Category"
+                           FontSize="13"
+                           TextColor="{AppThemeBinding Light=#8E8E93, Dark=#8E8E93}"/>
+                    <Label x:Name="CategoryField"
+                           FontSize="17"
+                           TextColor="{AppThemeBinding Light=#000000, Dark=#FFFFFF}"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border BackgroundColor="{AppThemeBinding Light=#F2F2F7, Dark=#2C2C2E}"
+                   Padding="16"
+                   StrokeShape="RoundRectangle 10"
+                   Stroke="Transparent"
+                   Margin="0,0,0,16">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Username"
+                           FontSize="13"
+                           TextColor="{AppThemeBinding Light=#8E8E93, Dark=#8E8E93}"/>
+                    <Label x:Name="UsernameField"
+                           FontSize="17"
+                           TextColor="{AppThemeBinding Light=#000000, Dark=#FFFFFF}"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border BackgroundColor="{AppThemeBinding Light=#F2F2F7, Dark=#2C2C2E}"
+                   Padding="16"
+                   StrokeShape="RoundRectangle 10"
+                   Stroke="Transparent"
+                   Margin="0,0,0,16">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Password"
+                           FontSize="13"
+                           TextColor="{AppThemeBinding Light=#8E8E93, Dark=#8E8E93}"/>
+                    <Grid VerticalOptions="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <Label x:Name="PasswordField"
+                               Grid.Column="0"
+                               FontSize="17"
+                               VerticalTextAlignment="Center"
+                               VerticalOptions="Center"
+                               TextColor="{AppThemeBinding Light=#000000, Dark=#FFFFFF}">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnPasswordTapped" />
+                            </Label.GestureRecognizers>
+                        </Label>
+
+                        <Button x:Name="TogglePasswordButton"
+                                Grid.Column="1"
+                                Text="SHOW"
+                                BackgroundColor="Transparent"
+                                TextColor="{AppThemeBinding Light=#007AFF, Dark=#0A84FF}"
+                                FontSize="13"
+                                Padding="12,8"
+                                VerticalOptions="Center"
+                                HeightRequest="30"
+                                Clicked="OnTogglePasswordClicked" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
 </ContentView>
