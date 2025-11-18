@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Password_manager.Templates.PopupLoginView">
+<toolkit:Popup
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:system="clr-namespace:System;assembly=mscorlib"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    x:Class="Password_manager.Templates.PopupLoginView"
+    Padding="10">
+
     <VerticalStackLayout 
     Padding="20" 
     Spacing="10"
@@ -9,18 +14,18 @@
     HorizontalOptions="Center"
     WidthRequest="200">
 
-        <Label Text="Password Manager" 
+        <Label Text="Log in to cloud account" 
            FontSize="32" 
            FontAttributes="Bold"
            HorizontalOptions="Center"/>
 
-        <Border x:Name="UsernameBorder"
+        <Border x:Name="EmailBorder"
             Stroke="Gray"
             StrokeThickness="2"
             StrokeShape="RoundRectangle 8"
             Padding="4">
-            <Entry x:Name="UsernameEntry" 
-           Placeholder="Username"
+            <Entry x:Name="EmailEntry" 
+           Placeholder="Email"
            FontSize="16"/>
         </Border>
 
@@ -35,7 +40,6 @@
            FontSize="16"/>
         </Border>
 
-
         <Button Text="Login" 
             Command="{Binding LoginCommand}"
             BackgroundColor="Blue"
@@ -47,4 +51,4 @@
             BackgroundColor="Transparent"
             TextColor="Blue"/>
     </VerticalStackLayout>
-</ContentView>
+</toolkit:Popup>

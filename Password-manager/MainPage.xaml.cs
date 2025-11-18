@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Storage;
 using Password_manager.Services;
+using CommunityToolkit.Maui.Views;
 
 
 namespace Password_manager
@@ -18,15 +19,40 @@ namespace Password_manager
     {
         public IAsyncRelayCommand Cloud { get; }
         public IAsyncRelayCommand LogoutFromAccount { get; }
-        public IAsyncRelayCommand<PasswordItem> DeleteCommand { get; }
         public IAsyncRelayCommand SettingsCommand { get; }
-
         private readonly IServiceProvider _services;
-
+        public IRelayCommand<TabItem> SwitchTabCommand { get; }
         private readonly RequestHandler _handler;
+        public ObservableCollection<TabItem> Tabs { get; set; }
 
-        private PasswordItem? _selectedPassword;
-        public ObservableCollection<PasswordItem> PasswordList { get; set; } = new ObservableCollection<PasswordItem>();
+        private TabItem _selectedTab;
+        public TabItem SelectedTab
+        {
+            get => _selectedTab;
+            set
+            {
+                if (_selectedTab != value)
+                {
+                    _selectedTab = value;
+                    OnPropertyChanged();
+
+                    if (value != null)
+                    {
+                        ShowTab(value);
+                    }
+                }
+            }
+        }
+        private bool _isConnectedToCloud = false;
+        public bool IsConnectedToCloud { 
+            get => _isConnectedToCloud;
+            set 
+            {
+                _isConnectedToCloud = value;
+                OnPropertyChanged();
+            }
+        }
+
         public MainPage(IServiceProvider services, RequestHandler handler)
         {
             InitializeComponent();
@@ -34,16 +60,62 @@ namespace Password_manager
             _services = services;
             _handler = handler;
 
-            Cloud = new AsyncRelayCommand(StoreOnCloud);
+            Cloud = new AsyncRelayCommand(ConnectToCloud);
             LogoutFromAccount = new AsyncRelayCommand(Logout);
-            DeleteCommand = new AsyncRelayCommand<PasswordItem>(DeleteSelectedData);
             SettingsCommand = new AsyncRelayCommand(OpenSettings);
+            SwitchTabCommand = new RelayCommand<TabItem>(tab => SelectedTab = tab);
+
+            Tabs = new ObservableCollection<TabItem>
+            {
+                new TabItem { Title = "Passwords", ViewType = typeof(PasswordVaultView) },
+                new TabItem { Title = "Notes", ViewType = typeof(NoteVaultView) }
+            };
+
             BindingContext = this;
+
+            SelectedTab = Tabs[0];
         }
 
-        private async Task StoreOnCloud()
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
+
+        }
+
+        private async Task CheckCloudConnection()
         {
 
+        }
+
+        private async Task ConnectToCloud()
+        {
+            await ShowLoginView();
+        }
+
+        private async Task ShowLoginView()
+        {
+            var loginPopup = _services.GetService<PopupLoginView>();
+            var result = await this.ShowPopupAsync(loginPopup);
+
+            if (result?.ToString() == "navigate_to_register")
+            {
+                await ShowRegisterView();
+            }
+            else if (result?.ToString() == "login_success")
+            {
+                IsConnectedToCloud = true;
+            }
+        }
+
+        private async Task ShowRegisterView()
+        {
+            var registerPopup = _services.GetService<PopupLoginView>();
+            var result = await this.ShowPopupAsync(registerPopup);
+
+            if (result?.ToString() == "navigate_to_login" || result?.ToString() == "register_success")
+            {
+                await ShowLoginView();
+            }
         }
 
         private async Task Logout()
@@ -69,60 +141,10 @@ namespace Password_manager
             await Navigation.PushModalAsync(settingsPage);
         }
 
-        private async Task DeleteSelectedData(PasswordItem? Item)
+        private void ShowTab(TabItem tab)
         {
-            if (Item == null)
-            {
-                return;
-            }
-
-            await _handler.DeleteDataFromAccount(Item);
-
-            await LoadData();
-        }
-
-        protected override async void OnAppearing()
-        {
-            base.OnAppearing();
-            await LoadData();
-        }
-
-        private async Task LoadData()
-        {
-            var data = await _handler.GetAccountSavedData();
-
-            PasswordList.Clear();
-
-            foreach (var item in data)
-            {
-                PasswordList.Add(item);
-            }
-
-        }
-
-        private void OnShowAddView(object sender, EventArgs e)
-        {
-            var view = _services.GetService<AddNewDataView>();
-            view.OnDataAdded = async () => await LoadData();
-            DynamicContentView.Content = view;
-        }
-
-        private void OnShowDataView(object sender, TappedEventArgs e)
-        {
-            if (e.Parameter is PasswordItem _selectedPassword)
-            {
-                DynamicContentView.Content = new ViewDataView(_selectedPassword);
-            }
-        }
-
-        public PasswordItem? SelectedPassword
-        {
-            get => _selectedPassword;
-            set
-            {
-                _selectedPassword = value;
-                OnPropertyChanged();
-            }
+            var view = _services.GetService(tab.ViewType) as View;
+            TabView.Content = view;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -130,5 +152,11 @@ namespace Password_manager
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
+    }
+
+    public class TabItem
+    {
+        public string Title { get; set; }
+        public Type ViewType { get; set; }
     }
 }

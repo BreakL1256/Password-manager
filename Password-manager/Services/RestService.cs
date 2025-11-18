@@ -48,7 +48,7 @@ namespace Password_manager.Services
             {
                 _client.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", token);
-                _logger.LogInformation("Token set in authirzitaion header");
+                _logger.LogInformation("Token set in authorization header");
             }
             else
             {
@@ -56,10 +56,10 @@ namespace Password_manager.Services
             }
         }
 
-        public async Task RegisterNewCloudAccount(LoginDTO registerCredentials)
+        public async Task<bool> RegisterNewCloudAccount(LoginDTO registerCredentials)
         {
             Uri uri = new Uri(string.Format(Constants.RestUrl, "AccountsItems/register"));
-
+            registerCredentials.UserIdentifier = await _restServiceHelper.GetUserIdentifier();
             try
             {
                 string json = JsonSerializer.Serialize(registerCredentials, _serializerOptions);
@@ -72,19 +72,22 @@ namespace Password_manager.Services
                 {
                     _logger.LogInformation("Request to register new account on cloud has been succesfull: {StatusCode} - {content}",
                         response.StatusCode, body);
+                    return true;
                 }
                 else
                 {
                     _logger.LogWarning("Request to register wasn't succesfull: {StatusCode} - {content}", response.StatusCode, body);
+                    return false;
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError("Request to register new account on cloud failed: {ex}", ex);
+                return false;
             }
         }
 
-        public async Task LoginToCloudAccount(LoginDTO loginCredentials)
+        public async Task<bool> LoginToCloudAccount(LoginDTO loginCredentials)
         {
             Uri uri = new Uri(string.Format(Constants.RestUrl, "AccountsItems/register"));
             loginCredentials.UserIdentifier = await _restServiceHelper.GetUserIdentifier();
@@ -114,19 +117,23 @@ namespace Password_manager.Services
                     await _restServiceHelper.SaveCloudData(cloudId, email, token);
 
                     await SetAuthenticationToken();
+
+                    return true;
                 }
                 else
                 {
                     _logger.LogWarning("Request to login wasn't succesfull: {StatusCode} - {content}", response.StatusCode, body);
+                    return false;
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError("Request to login new account on cloud failed: {ex}", ex);
+                return false;
             }
         }
 
-        public async Task RestoreVault()
+        public async Task<bool> RestoreVault()
         {
             ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
             int userId = Preferences.Get("CurrentUserId", -1);
@@ -170,16 +177,22 @@ namespace Password_manager.Services
                     var blobObject = JsonSerializer.Deserialize<List<ProgramDto>>(blob);
 
                     await Upsert(blobObject);
+
+                    _logger.LogInformation("Vault has been succesfully restored");
+
+                    return true;
                 }
                 else
                 {
                     _logger.LogWarning("Failed to Restore Vault: {StatusCode} - {body}", response.StatusCode, body);
+                    return false;
                 }
 
             }
             catch (Exception ex)
             {
                 _logger.LogError("Failed to restore vault: {ex}", ex);
+                return false;
             }
         }
 
@@ -219,7 +232,7 @@ namespace Password_manager.Services
             }
         }
 
-        public async Task BackupVault()
+        public async Task<bool> BackupVault()
         {
             ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
 
@@ -268,10 +281,21 @@ namespace Password_manager.Services
                     StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
 
                     HttpResponseMessage response = await _client.PostAsync(uri, content);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        _logger.LogInformation("Vault has been succesfully backed up for the first time");
+                        return true;
+                    }
+
+                    _logger.LogWarning("Failed to make a vault backup (first backup): {statusCode}", response.StatusCode);
+                    return false;
+
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError("Failed to make a vault backup: {ex}", ex);
+                    _logger.LogError("Failed to make a vault backup (first backup): {ex}", ex);
+                    return false;
                 }
             }
             else
@@ -316,10 +340,20 @@ namespace Password_manager.Services
                     StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
 
                     HttpResponseMessage response = await _client.PutAsync(uri, content);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        _logger.LogInformation("Vault has been succesfully backed up");
+                        return true;
+                    }
+
+                    _logger.LogWarning("Failed to make a vault backup: {statusCode}", response.StatusCode);
+                    return false;
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError("Failed to make a vault backup: {ex}", ex);
+                    return false;
                 }
             }
         }

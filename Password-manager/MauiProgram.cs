@@ -24,10 +24,14 @@ namespace Password_manager
     		builder.Logging.AddDebug();
 #endif
             builder.Services.AddSingleton<SqliteConnectionFactory>();
-            builder.Services.AddSingleton<RequestHandler>();
-            builder.Services.AddSingleton<RestServiceHelper>();
-            builder.Services.AddSingleton<RestService>();
+            builder.Services.AddTransient<RequestHandler>();
+            builder.Services.AddTransient<RestServiceHelper>();
+            builder.Services.AddTransient<RestService>();
             builder.Services.AddTransient<AddNewDataView>();
+            builder.Services.AddTransient<PasswordVaultView>();
+            builder.Services.AddTransient<NoteVaultView>();
+            builder.Services.AddTransient<PopupRegisterView>();
+            builder.Services.AddTransient<PopupLoginView>();
             return builder.Build();
         }
     }
