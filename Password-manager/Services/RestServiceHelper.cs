@@ -168,5 +168,28 @@ namespace Password_manager.Services
                 return null;
             }
         }
+
+        public async Task<bool> IsCloudLinked()
+        {
+            ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
+
+            var userId = Preferences.Get("CurrentUserId", -1);
+            try
+            {
+                bool cloudLinked = await database.ExecuteScalarAsync<bool>("SELECT CloudLinked FROM UserAccounts WHERE Id = ?", userId);
+
+                if(cloudLinked == null)
+                {
+                    throw new Exception("Cloud linked value is null");
+                }
+
+                return cloudLinked;
+            } 
+            catch(Exception ex)
+            {
+                _logger.LogError("Can't retrieve data on cloud information from database: {ex}", ex);
+                return false;
+            }
+        } 
     }
 }

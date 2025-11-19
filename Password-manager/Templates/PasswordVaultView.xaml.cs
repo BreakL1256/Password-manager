@@ -56,7 +56,7 @@ public partial class PasswordVaultView : ContentView, INotifyPropertyChanged
         await LoadData();
     }
 
-    private async Task LoadData()
+    public async Task LoadData()
     {
         var data = await _handler.GetAccountSavedData();
 

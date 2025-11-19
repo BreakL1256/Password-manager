@@ -10,6 +10,7 @@ using Microsoft.Maui.Controls;
 using Microsoft.Maui.Storage;
 using Password_manager.Services;
 using CommunityToolkit.Maui.Views;
+using System.Threading.Tasks;
 
 
 namespace Password_manager
@@ -20,7 +21,12 @@ namespace Password_manager
         public IAsyncRelayCommand Cloud { get; }
         public IAsyncRelayCommand LogoutFromAccount { get; }
         public IAsyncRelayCommand SettingsCommand { get; }
+        public IAsyncRelayCommand DisconnectCommand { get; }
+        public IAsyncRelayCommand BackupCommand { get; }
+        public IAsyncRelayCommand RestoreCommand { get; }
         private readonly IServiceProvider _services;
+        private readonly RestServiceHelper _restServiceHelper;
+        private readonly RestService _restService;
         public IRelayCommand<TabItem> SwitchTabCommand { get; }
         private readonly RequestHandler _handler;
         public ObservableCollection<TabItem> Tabs { get; set; }
@@ -53,16 +59,20 @@ namespace Password_manager
             }
         }
 
-        public MainPage(IServiceProvider services, RequestHandler handler)
+        public MainPage(IServiceProvider services, RequestHandler handler, RestServiceHelper restServiceHelper)
         {
             InitializeComponent();
 
             _services = services;
             _handler = handler;
+            _restServiceHelper = restServiceHelper;
 
             Cloud = new AsyncRelayCommand(ConnectToCloud);
             LogoutFromAccount = new AsyncRelayCommand(Logout);
             SettingsCommand = new AsyncRelayCommand(OpenSettings);
+            DisconnectCommand = new AsyncRelayCommand(DisconnectFromCloud);
+            BackupCommand = new AsyncRelayCommand(BackupVault);
+            RestoreCommand = new AsyncRelayCommand(RestoreVault);
             SwitchTabCommand = new RelayCommand<TabItem>(tab => SelectedTab = tab);
 
             Tabs = new ObservableCollection<TabItem>
@@ -76,15 +86,46 @@ namespace Password_manager
             SelectedTab = Tabs[0];
         }
 
-        protected override void OnAppearing()
+        protected override async void OnAppearing()
         {
             base.OnAppearing();
-
+            await CheckCloudConnection();
         }
 
+        public async Task DisconnectFromCloud()
+        {
+            await _restServiceHelper.DeleteCloudData();
+
+            IsConnectedToCloud = false;
+        }
+        public async Task BackupVault()
+        {
+            var isBackedUp = await _restService.BackupVault();
+        }
+        public async Task RestoreVault()
+        {
+            var isRestored = await _restService.RestoreVault();
+
+            if (isRestored)
+            {
+                if(TabView.Content is PasswordVaultView passwordVaultView)
+                {
+                    await passwordVaultView.LoadData();
+                }
+            }
+        }
         private async Task CheckCloudConnection()
         {
+            bool cloudLinked = await _restServiceHelper.IsCloudLinked();
 
+            if (cloudLinked)
+            {
+                IsConnectedToCloud = true;
+            }
+            else
+            {
+                IsConnectedToCloud = false;
+            }
         }
 
         private async Task ConnectToCloud()

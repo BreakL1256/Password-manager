@@ -41,9 +41,27 @@
                             <Setter Property="Content">
                                 <Setter.Value>
                                     <HorizontalStackLayout>
-                                        <Button Text="Disconnect"/>
-                                        <Button Text="Backup"/>
-                                        <Button Text="Restore"/>
+                                        <Button Text="Disconnect"
+                                                Command="{Binding DisconnectCommand}"
+                                                BackgroundColor="Transparent"
+                                                TextColor="{AppThemeBinding Light=#007AFF, Dark=#0A84FF}"
+                                                BorderWidth="0"
+                                                HeightRequest="36"
+                                                FontSize="14"/>
+                                        <Button Text="Backup"
+                                                Command="{Binding BackupCommand}"
+                                                BackgroundColor="Transparent"
+                                                TextColor="{AppThemeBinding Light=#007AFF, Dark=#0A84FF}"
+                                                BorderWidth="0"
+                                                HeightRequest="36"
+                                                FontSize="14"/>
+                                        <Button Text="Restore"
+                                                Command="{Binding RestoreCommand}"
+                                                BackgroundColor="Transparent"
+                                                TextColor="{AppThemeBinding Light=#007AFF, Dark=#0A84FF}"
+                                                BorderWidth="0"
+                                                HeightRequest="36"
+                                                FontSize="14"/>
                                     </HorizontalStackLayout>
                                 </Setter.Value>
                             </Setter>
