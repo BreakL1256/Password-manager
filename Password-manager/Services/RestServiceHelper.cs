@@ -33,7 +33,7 @@ namespace Password_manager.Services
             _tool = new EncryptionAndHashingMethods();
         }
 
-        public async Task SaveCloudData(long cloudId, string email, string token)
+        public async Task SaveCloudData(long cloudId, string email, string token, string password)
         {
             ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
 
@@ -55,6 +55,8 @@ namespace Password_manager.Services
                 byte[] DEK = Convert.FromBase64String(DEKInBase64);
                 string EncryptedJWTTokenInBase64 = await Task.Run(() => _tool.Encrypt(token, DEK));
 
+                string encryptedCloudPassword = await Task.Run(() => _tool.Encrypt(password, DEK));
+
                 DateTime? tokenExpTime = GetExpiryUsingHandler(token);
 
                 if(tokenExpTime is null)
@@ -63,8 +65,8 @@ namespace Password_manager.Services
                 }
 
                 await database.ExecuteAsync(
-                    "UPDATE UserAccounts SET CloudLinked = ?, CloudAccountId = ?, CloudEmail = ?, CloudTokenEncrypted = ?, CloudTokenExpiry = ?, LastCloudSync = ? WHERE Id = ?",
-                    true, cloudId, email, EncryptedJWTTokenInBase64, tokenExpTime, DateTime.UtcNow, userId);
+                    "UPDATE UserAccounts SET CloudLinked = ?, CloudAccountId = ?, CloudEmail = ?, CloudPassword = ?, CloudTokenEncrypted = ?, CloudTokenExpiry = ?, LastCloudSync = ? WHERE Id = ?",
+                    true, cloudId, email, encryptedCloudPassword, EncryptedJWTTokenInBase64, tokenExpTime, DateTime.UtcNow, userId);
 
                 _logger.LogInformation("Cloud credentials have been successfully added");
 
@@ -191,5 +193,51 @@ namespace Password_manager.Services
                 return false;
             }
         } 
+
+        public async Task<LoginDTO?> GetCloudCredentials()
+        {
+            ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
+
+            var userId = Preferences.Get("CurrentUserId", -1);
+            try
+            {
+                var users = await database.QueryAsync<UserAccounts>("SELECT * FROM UserAccounts WHERE Id = ?", userId);
+
+                if (users == null || !users.Any())
+                {
+                    throw new Exception("User couldn't be found");
+                }
+
+                string? userPassword = await SecureStorage.Default.GetAsync("CurrentPassword");
+
+                byte[] KEKSalt = Convert.FromBase64String(users[0].KEKSalt);
+                byte[] KEK = await Task.Run(() => _tool.HashString(userPassword, KEKSalt));
+                string DEKInBase64 = await Task.Run(() => _tool.Decrypt(users[0].EncryptedDEK, KEK));
+                byte[] DEK = Convert.FromBase64String(DEKInBase64);
+
+                string password = await Task.Run(() => _tool.Decrypt(users[0].CloudPassword, DEK));
+                var userIdentifier = await GetUserIdentifier();
+
+                if(userIdentifier == null)
+                {
+                    throw new Exception("User identifier couldn't be retrieved");
+                }
+
+                LoginDTO trans = new LoginDTO()
+                {
+                    Email = users[0].CloudEmail,
+                    Password = password,
+                    UserIdentifier = userIdentifier
+                };
+
+                _logger.LogInformation("Cloud credentials have been succesfully retrieved");
+                return trans;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Can't retrieve cloud credentials: {ex}", ex);
+                return null;
+            }
+        }
     }
 }

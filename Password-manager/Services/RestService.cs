@@ -33,7 +33,8 @@ namespace Password_manager.Services
             _serializerOptions = new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                WriteIndented = true
+                WriteIndented = true,
+                PropertyNameCaseInsensitive = true
             };
             _restServiceHelper = restServiceHelper;
             _tool = new EncryptionAndHashingMethods();
@@ -60,6 +61,7 @@ namespace Password_manager.Services
         {
             Uri uri = new Uri(string.Format(Constants.RestUrl, "AccountsItems/register"));
             registerCredentials.UserIdentifier = await _restServiceHelper.GetUserIdentifier();
+
             try
             {
                 string json = JsonSerializer.Serialize(registerCredentials, _serializerOptions);
@@ -89,7 +91,7 @@ namespace Password_manager.Services
 
         public async Task<bool> LoginToCloudAccount(LoginDTO loginCredentials)
         {
-            Uri uri = new Uri(string.Format(Constants.RestUrl, "AccountsItems/register"));
+            Uri uri = new Uri(string.Format(Constants.RestUrl, "AccountsItems/login"));
             loginCredentials.UserIdentifier = await _restServiceHelper.GetUserIdentifier();
 
             try
@@ -107,14 +109,14 @@ namespace Password_manager.Services
 
                     var res = JsonSerializer.Deserialize<JsonElement>(body, _serializerOptions);
 
-                    string token = res.GetProperty("Token").GetString();
-                    long cloudId = res.GetProperty("Id").GetInt64();
-                    string email = res.GetProperty("Email").GetString();
-                    bool isFirstBackup = res.GetProperty("isFirstBackup").GetBoolean();
+                    long cloudId = res.GetProperty("userId").GetInt64();
+                    string email = res.GetProperty("email").GetString();
+                    string token = res.GetProperty("token").GetString();
+                    bool isFirstBackup = res.GetProperty("isFirstbackup").GetBoolean();
 
                     Preferences.Set("IsFirstBackup", isFirstBackup);
 
-                    await _restServiceHelper.SaveCloudData(cloudId, email, token);
+                    await _restServiceHelper.SaveCloudData(cloudId, email, token, loginCredentials.Password);
 
                     await SetAuthenticationToken();
 

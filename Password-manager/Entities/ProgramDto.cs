@@ -37,6 +37,7 @@ namespace Password_manager.Entities {
         public bool CloudLinked { get; set; } = false;
         public long? CloudAccountId { get; set; }
         public string? CloudEmail { get; set; }
+        public string? CloudPassword { get; set; }
         public string? CloudTokenEncrypted { get; set; } 
         public DateTime? CloudTokenExpiry { get; set; }
         public DateTime? LastCloudSync { get; set; }

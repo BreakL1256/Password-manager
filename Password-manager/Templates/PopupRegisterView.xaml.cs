@@ -57,7 +57,7 @@ public partial class PopupRegisterView : Popup
 
     public void NavigateToCloudLogin()
     {
-		Close("Navigate_to_login");
+		Close("navigate_to_login");
     }
 
 	private bool CanRegister()

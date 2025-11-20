@@ -11,6 +11,7 @@ using Microsoft.Maui.Storage;
 using Password_manager.Services;
 using CommunityToolkit.Maui.Views;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 
 namespace Password_manager
@@ -27,6 +28,7 @@ namespace Password_manager
         private readonly IServiceProvider _services;
         private readonly RestServiceHelper _restServiceHelper;
         private readonly RestService _restService;
+        private readonly ILogger<MainPage> _logger;
         public IRelayCommand<TabItem> SwitchTabCommand { get; }
         private readonly RequestHandler _handler;
         public ObservableCollection<TabItem> Tabs { get; set; }
@@ -59,13 +61,16 @@ namespace Password_manager
             }
         }
 
-        public MainPage(IServiceProvider services, RequestHandler handler, RestServiceHelper restServiceHelper)
+        public MainPage(IServiceProvider services, RequestHandler handler, RestServiceHelper restServiceHelper,
+            ILogger<MainPage> logger, RestService restService)
         {
             InitializeComponent();
 
             _services = services;
             _handler = handler;
             _restServiceHelper = restServiceHelper;
+            _logger = logger;
+            _restService = restService;
 
             Cloud = new AsyncRelayCommand(ConnectToCloud);
             LogoutFromAccount = new AsyncRelayCommand(Logout);
@@ -100,17 +105,30 @@ namespace Password_manager
         }
         public async Task BackupVault()
         {
-            var isBackedUp = await _restService.BackupVault();
+            var credentials = await _restServiceHelper.GetCloudCredentials();
+            if (credentials != null)
+            {
+                var isCloudLinked = await _restService.LoginToCloudAccount(credentials);
+
+                var isBackedUp = await _restService.BackupVault();
+            }
         }
         public async Task RestoreVault()
         {
-            var isRestored = await _restService.RestoreVault();
+            var credentials = await _restServiceHelper.GetCloudCredentials();
 
-            if (isRestored)
+            if (credentials != null)
             {
-                if(TabView.Content is PasswordVaultView passwordVaultView)
+                var isCloudLinked = await _restService.LoginToCloudAccount(credentials);
+
+                var isRestored = await _restService.RestoreVault();
+
+                if (isRestored)
                 {
-                    await passwordVaultView.LoadData();
+                    if(TabView.Content is PasswordVaultView passwordVaultView)
+                    {
+                        await passwordVaultView.LoadData();
+                    }
                 }
             }
         }
@@ -140,7 +158,9 @@ namespace Password_manager
 
             if (result?.ToString() == "navigate_to_register")
             {
+                _logger.LogWarning("before initiating register popup view");
                 await ShowRegisterView();
+                _logger.LogWarning("after initiating register popup view");
             }
             else if (result?.ToString() == "login_success")
             {
@@ -150,7 +170,7 @@ namespace Password_manager
 
         private async Task ShowRegisterView()
         {
-            var registerPopup = _services.GetService<PopupLoginView>();
+            var registerPopup = _services.GetService<PopupRegisterView>();
             var result = await this.ShowPopupAsync(registerPopup);
 
             if (result?.ToString() == "navigate_to_login" || result?.ToString() == "register_success")

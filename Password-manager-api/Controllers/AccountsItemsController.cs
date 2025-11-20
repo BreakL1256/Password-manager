@@ -19,11 +19,12 @@ namespace Password_manager_api.Controllers
     {
         private readonly AppDbContext _context;
         private readonly JWTService _jwtService;
-
+        private readonly EncryptionAndHashingMethods _tool;
         public AccountsItemsController(AppDbContext context, JWTService jwtService)
         {
             _context = context;
             _jwtService = jwtService;
+            _tool = new EncryptionAndHashingMethods();
         }
 
         // GET: api/AccountsItems
@@ -60,19 +61,19 @@ namespace Password_manager_api.Controllers
             {
                 NotFound();
             }
-            else if (account.Password != loginCredentials.Password)
+            else if (await Task.Run(() => !_tool.VerifyPassword(loginCredentials.Password, account.Password)))
             {
                 BadRequest(new { error = "Invalid Password" });
             }
 
             var vault = await _context.VaultBackups.Where(item => item.UserId == account.Id && item.VaultOwnerId == loginCredentials.UserIdentifier).FirstOrDefaultAsync();
 
-            if (vault != null)
+            if (vault == null)
             {
                 isFirstbackup = true;
             }
 
-            var token = _jwtService.GenerateToken(account.Id, account.Email);
+            string token = _jwtService.GenerateToken(account.Id, account.Email);
 
             return Ok(new
             {
@@ -94,10 +95,12 @@ namespace Password_manager_api.Controllers
                 return BadRequest(new { error = "Email already exists" });
             }
 
+            var passwordHash = await Task.Run(() => _tool.HashString(registerCredentials.Password));
+
             var newAccount = new AccountsItem
             {
                 Email = registerCredentials.Email,
-                Password = registerCredentials.Password,
+                Password = passwordHash,
             };
 
             _context.Accounts.Add(newAccount);
