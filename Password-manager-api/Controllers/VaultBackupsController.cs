@@ -22,9 +22,9 @@ namespace Password_manager_api.Controllers
     {
         private readonly AppDbContext _context;
         private readonly JWTService _jwtService;
-        private readonly ILogger _logger;
+        private readonly ILogger<VaultBackupsController> _logger;
 
-        public VaultBackupsController(AppDbContext context, JWTService jwtService, ILogger logger)
+        public VaultBackupsController(AppDbContext context, JWTService jwtService, ILogger<VaultBackupsController> logger)
         {
             _context = context;
             _jwtService = jwtService;
@@ -52,10 +52,10 @@ namespace Password_manager_api.Controllers
                 return NotFound();
             }
 
-            _logger.LogInformation("Vault backup restored succesfully");
+            _logger.LogInformation("Vault backup restored succesfully: {blob}", storedVaultBackup.EncryptedVaultBlob);
             return Ok(new
             {
-                EncryptedVaultBlob = storedVaultBackup.EncryptedVaultBlob,
+                encryptedvaultblob = storedVaultBackup.EncryptedVaultBlob,
             });
         }
 

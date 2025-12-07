@@ -6,6 +6,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Konscious.Security.Cryptography;
+using Microsoft.Extensions.Logging;
+using SQLite;
+using Password_manager.Shared;
 
 namespace Password_manager.Entities
 {

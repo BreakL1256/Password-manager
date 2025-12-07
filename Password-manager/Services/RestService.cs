@@ -26,10 +26,11 @@ namespace Password_manager.Services
         public RestService(ILogger<RestService> logger,
             RestServiceHelper restServiceHelper,
             RequestHandler handler,
-            SqliteConnectionFactory connectionFactory) 
+            SqliteConnectionFactory connectionFactory,
+            HttpClient client) 
         {
             _logger = logger;
-            _client = new HttpClient();
+            _client = client;
             _serializerOptions = new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -47,6 +48,7 @@ namespace Password_manager.Services
             string? token = await _restServiceHelper.GetToken();
             if (!string.IsNullOrEmpty(token))
             {
+                _logger.LogWarning("TOKEN FOR AUTH: {token}", token);
                 _client.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", token);
                 _logger.LogInformation("Token set in authorization header");
@@ -138,8 +140,10 @@ namespace Password_manager.Services
         public async Task<bool> RestoreVault()
         {
             ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
+            
             int userId = Preferences.Get("CurrentUserId", -1);
 
+            await SetAuthenticationToken();
             try
             {
                 string? userIdentifier = await _restServiceHelper.GetUserIdentifier();
@@ -153,12 +157,14 @@ namespace Password_manager.Services
                 
                 HttpResponseMessage response = await _client.GetAsync(uri);
 
-                string body = await response.Content.ReadAsStringAsync();
+                var body = await response.Content.ReadAsStringAsync();
                 var res = JsonSerializer.Deserialize<JsonElement>(body, _serializerOptions);
                 if (response.IsSuccessStatusCode)
                 {
 
-                    string encryptedVaultBlob = res.GetProperty("EncryptedVaultBlob").GetString();
+                    string encryptedVaultBlob = res.GetProperty("encryptedvaultblob").GetString();
+
+                    _logger.LogInformation("Works I GOT A BLOB IN MY APP: {blob}", encryptedVaultBlob);
 
                     var users = await database.QueryAsync<UserAccounts>("SELECT * FROM UserAccounts WHERE Id = ?", userId);
 
@@ -178,7 +184,7 @@ namespace Password_manager.Services
 
                     var blobObject = JsonSerializer.Deserialize<List<ProgramDto>>(blob);
 
-                    await Upsert(blobObject);
+                    await Upsert(blobObject, DEK);
 
                     _logger.LogInformation("Vault has been succesfully restored");
 
@@ -198,7 +204,7 @@ namespace Password_manager.Services
             }
         }
 
-        private async Task Upsert(List<ProgramDto> restoredVault)
+        private async Task Upsert(List<ProgramDto> restoredVault, byte[] DEK)
         {
             ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
             int userId = Preferences.Get("CurrentUserId", -1);
@@ -209,6 +215,11 @@ namespace Password_manager.Services
                 if (existingVault == null)
                 {
                     throw new Exception("Vault doesn't exist");
+                }
+
+                foreach (var item in existingVault)
+                {
+                    item.Password = await Task.Run(() => _tool.Decrypt(item.Password, DEK));
                 }
 
                 foreach (var restoredItem in restoredVault)
@@ -224,6 +235,7 @@ namespace Password_manager.Services
                     }
 
                     restoredItem.Id = 0;
+                    restoredItem.Password = await Task.Run(() => _tool.Encrypt(restoredItem.Password, DEK));
                     await database.InsertAsync(restoredItem);
                 }
             }
@@ -241,6 +253,7 @@ namespace Password_manager.Services
             int userId = Preferences.Get("CurrentUserId", -1);
             bool isFirstBackup = Preferences.Get("IsFirstBackup", false);
 
+            await SetAuthenticationToken();
             if (isFirstBackup)
             {
                 Uri uri = new Uri(string.Format(Constants.RestUrl, "VaultBackups"));

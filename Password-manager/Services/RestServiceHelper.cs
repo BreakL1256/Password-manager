@@ -14,7 +14,6 @@ namespace Password_manager.Services
 {
     public class RestServiceHelper
     {
-        private readonly HttpClient _client;
         private readonly JsonSerializerOptions _serializerOptions;
         private readonly ILogger<RestServiceHelper> _logger;
         private readonly SqliteConnectionFactory _connectionFactory;
@@ -24,7 +23,6 @@ namespace Password_manager.Services
         {
             _connectionFactory = connectionFactory;
             _logger = logger;
-            _client = new HttpClient();
             _serializerOptions = new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -101,8 +99,8 @@ namespace Password_manager.Services
             int userId = Preferences.Get("CurrentUserId", -1);
             try
             {
-                await database.ExecuteAsync("UPDATE UserAccounts SET CloudLinked = ?, CloudAccountId = ?, CloudEmail = ?, CloudTokenEncrypted = ?, CloudTokenExpiry = ?, LastCloudSync = ? WHERE Id = ?",
-                    false, null, null, null, null, null);
+                await database.ExecuteAsync("UPDATE UserAccounts SET CloudLinked = ?, CloudAccountId = ?, CloudEmail = ?, CloudPassword = ?, CloudTokenEncrypted = ?, CloudTokenExpiry = ?, LastCloudSync = ? WHERE Id = ?",
+                    false, null, null, null, null, null, null, userId);
 
                 _logger.LogInformation("Cloud credentials data has been successfully deleted");
             }
@@ -236,6 +234,36 @@ namespace Password_manager.Services
             catch (Exception ex)
             {
                 _logger.LogError("Can't retrieve cloud credentials: {ex}", ex);
+                return null;
+            }
+        }
+
+        public async Task<byte[]> RetrieveDEK()
+        {
+            ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
+
+            var userId = Preferences.Get("CurrentUserId", -1);
+            try
+            {
+                var users = await database.QueryAsync<UserAccounts>("SELECT * FROM UserAccounts WHERE Id = ?", userId);
+
+                if (users == null || !users.Any())
+                {
+                    throw new Exception("User couldn't be found");
+                }
+
+                string? userPassword = await SecureStorage.Default.GetAsync("CurrentPassword");
+
+                byte[] KEKSalt = Convert.FromBase64String(users[0].KEKSalt);
+                byte[] KEK = await Task.Run(() => _tool.HashString(userPassword, KEKSalt));
+                string DEKInBase64 = await Task.Run(() => _tool.Decrypt(users[0].EncryptedDEK, KEK));
+                byte[] DEK = Convert.FromBase64String(DEKInBase64);
+
+                return DEK;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Could not retrieve DEK: {ex}", ex);
                 return null;
             }
         }

@@ -2,10 +2,23 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Password_manager.Templates.NoteVaultView">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <Button Command="{Binding AddNewNoteCommand}"
+            Text="+"
+            WidthRequest="40"
+            HeightRequest="40"
+            BackgroundColor="Purple"
+            TextColor="White"
+            CornerRadius="5"
+            ZIndex="100"
+            HorizontalOptions="Start"
+            VerticalOptions="Start"
+            Margin="10"/>
+        
+        
+    </Grid>
 </ContentView>

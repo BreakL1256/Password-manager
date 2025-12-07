@@ -24,14 +24,18 @@ namespace Password_manager
     		builder.Logging.AddDebug();
 #endif
             builder.Services.AddSingleton<SqliteConnectionFactory>();
-            builder.Services.AddTransient<RequestHandler>();
-            builder.Services.AddTransient<RestServiceHelper>();
-            builder.Services.AddTransient<RestService>();
+            builder.Services.AddSingleton<RequestHandler>();
+            builder.Services.AddSingleton<RestServiceHelper>();
+            builder.Services.AddHttpClient<RestService>(client =>
+            {
+                client.BaseAddress = new Uri("https://localhost:7074/api/");
+            });
             builder.Services.AddTransient<AddNewDataView>();
             builder.Services.AddTransient<PasswordVaultView>();
             builder.Services.AddTransient<NoteVaultView>();
             builder.Services.AddTransient<PopupRegisterView>();
             builder.Services.AddTransient<PopupLoginView>();
+            builder.Services.AddTransient<PopupAddNoteView>();
             return builder.Build();
         }
     }

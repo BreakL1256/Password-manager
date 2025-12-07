@@ -14,7 +14,7 @@ namespace Password_manager_api.Models
         [JsonIgnore]
         [Required]
         public string EncryptedVaultBlob { get; set; }
-        [Column(TypeName = "timestamp without time zone")]
+        [Column(TypeName = "timestamp with time zone")]
         public DateTime BackupTimestamp { get; set; } = DateTime.UtcNow;
         [Required]
         public string VaultOwnerId { get; set; }

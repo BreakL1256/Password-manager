@@ -59,11 +59,11 @@ namespace Password_manager_api.Controllers
 
             if (account == null)
             {
-                NotFound();
+                return NotFound();
             }
             else if (await Task.Run(() => !_tool.VerifyPassword(loginCredentials.Password, account.Password)))
             {
-                BadRequest(new { error = "Invalid Password" });
+                return BadRequest(new { error = "Invalid Password" });
             }
 
             var vault = await _context.VaultBackups.Where(item => item.UserId == account.Id && item.VaultOwnerId == loginCredentials.UserIdentifier).FirstOrDefaultAsync();

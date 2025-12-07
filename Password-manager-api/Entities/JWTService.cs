@@ -22,8 +22,8 @@ namespace Password_manager_api.Entities
             var issuer = jwtSettings["Issuer"];
             var audience = jwtSettings["Audience"];
             var expirationHours = int.Parse(jwtSettings["ExpirationHours"]);
+            var keyBytes = Encoding.UTF8.GetBytes(secretKey);
 
-            byte[] keyBytes = Convert.FromHexString(secretKey);
             var securityKey = new SymmetricSecurityKey(keyBytes);
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 

@@ -42,4 +42,14 @@ namespace Password_manager.Entities {
         public DateTime? CloudTokenExpiry { get; set; }
         public DateTime? LastCloudSync { get; set; }
     }
+
+    public class Notes
+    {
+        [PrimaryKey] 
+        [AutoIncrement]
+        public long Id { get; set; }
+        public long UserId { get; set; }
+        public string Content { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
 }

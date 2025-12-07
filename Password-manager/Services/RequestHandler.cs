@@ -1,13 +1,14 @@
-﻿using SQLite;
-using Password_manager.Shared;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Storage;
 using Password_manager.Entities;
+using Password_manager.Shared;
+using SQLite;
 
 namespace Password_manager.Services
 {
@@ -15,9 +16,15 @@ namespace Password_manager.Services
     {
         private readonly SqliteConnectionFactory _connectionFactory;
         private readonly EncryptionAndHashingMethods _tool;
-        public RequestHandler(SqliteConnectionFactory connectionFactory)
+        private readonly ILogger<RequestHandler> _logger;
+        private readonly RestServiceHelper _restServiceHelper;
+        public RequestHandler(SqliteConnectionFactory connectionFactory,
+            ILogger<RequestHandler> logger, 
+            RestServiceHelper restServiceHelper)
         {
             _connectionFactory = connectionFactory;
+            _logger = logger;
+            _restServiceHelper = restServiceHelper;
             _tool = new EncryptionAndHashingMethods();
             
         }
@@ -226,7 +233,7 @@ namespace Password_manager.Services
         public async Task DeleteDataFromAccount(PasswordItem Item)
         {
             ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
-            int UserId = Preferences.Get("CurrentUserId", -1);
+            long UserId = Preferences.Get("CurrentUserId", -1);
             try
             {
                 if (UserId == -1)
@@ -319,6 +326,100 @@ namespace Password_manager.Services
             {
                 Debug.WriteLine("Failed to fetch user account data: " + ex);
                 throw;
+            }
+        }
+
+        // Section for interacting with data related to notes
+
+        public async Task CreateNote(string content)
+        {
+            ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
+
+            long userId = Preferences.Get("CurrentUserId", -1);
+            try
+            {
+                byte[] DEK = await _restServiceHelper.RetrieveDEK();
+                if(DEK == null)
+                {
+                    throw new InvalidOperationException("DEK is null");
+                }
+
+                string encryptedContent = await Task.Run(() => _tool.Encrypt(content, DEK));
+
+                await database.ExecuteAsync("INSERT INTO Notes (UserId, Content, CreatedAt) VALUES (?, ?, ?)", userId, encryptedContent, DateTime.UtcNow);
+
+                _logger.LogInformation("New Note has been succesfully created");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Could not create a new note: {ex}", ex);
+            }
+        }
+
+        public async Task DeleteNode(long Id)
+        {
+            ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
+
+            long UserId = Preferences.Get("CurrentUserId", -1);
+            try
+            {
+                byte[] DEK = await _restServiceHelper.RetrieveDEK();
+                if (DEK == null)
+                {
+                    throw new InvalidOperationException("DEK is null");
+                }
+                await database.ExecuteAsync("DELETE FROM Notes WHERE Id = ?", Id);
+
+                _logger.LogInformation("Note has been succesfully deleted");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Could not delete note: {ex}", ex);
+            }
+        }
+
+        public async Task<List<NoteItem>> GetNotesByUser()
+        {
+            ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
+
+            long userId = Preferences.Get("CurrentUserId", -1);
+            try
+            {
+                byte[] DEK = await _restServiceHelper.RetrieveDEK();
+                if (DEK == null)
+                {
+                    throw new InvalidOperationException("DEK is null");
+                }
+
+                var notes = await database.QueryAsync<Notes>("SELECT * FROM Notes WHERE UserId = ?", userId);
+
+                var noteItems = new List<NoteItem>();
+
+                await Task.Run(() =>
+                {
+                    foreach (var note in notes)
+                    {
+                        note.Content = _tool.Decrypt(note.Content, DEK);
+
+                        var item = new NoteItem
+                        {
+                            Id = note.Id,
+                            UserId = note.UserId,
+                            Content = note.Content,
+                            CreatedAt = note.CreatedAt
+                        };
+
+                        noteItems.Add(item);
+                    }
+                });
+
+                _logger.LogInformation("Notes have been succesfully retrieved");
+                return noteItems;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Could not retrieve notes: {ex}", ex);
+                return [];
             }
         }
     }
