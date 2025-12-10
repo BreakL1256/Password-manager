@@ -12,8 +12,8 @@ namespace Password_manager.Entities {
     {
         [PrimaryKey]
         [AutoIncrement]
-        public int Id { get; set; }
-        public int UserId { get; set; }
+        public long Id { get; set; }
+        public long UserId { get; set; }
         public string Title { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
@@ -25,10 +25,32 @@ namespace Password_manager.Entities {
     {
         [PrimaryKey]
         [AutoIncrement]
-        public int Id { get; set; }
+        public long Id { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
         public string KEKSalt { get; set; }
         public string EncryptedDEK { get; set; }
+        public string UserIdentifier {  get; set; }
+
+
+        // Data for managing cloud connection
+        public bool CloudLinked { get; set; } = false;
+        public long? CloudAccountId { get; set; }
+        public string? CloudEmail { get; set; }
+        public string? CloudPassword { get; set; }
+        public string? CloudTokenEncrypted { get; set; } 
+        public DateTime? CloudTokenExpiry { get; set; }
+        public DateTime? LastCloudSync { get; set; }
+    }
+
+    public class Notes
+    {
+        [PrimaryKey] 
+        [AutoIncrement]
+        public long Id { get; set; }
+        public long UserId { get; set; }
+        public string Content { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime LastUpdatedAt { get; set; }
     }
 }

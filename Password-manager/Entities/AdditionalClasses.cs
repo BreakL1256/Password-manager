@@ -23,4 +23,13 @@ namespace Password_manager.Entities
         public string Password { get; set; }
         public string Category { get; set; }
     }
+    public class NoteItem
+    {
+        public long Id { get; set; }
+        public long UserId { get; set; }
+        public string Content { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime LastUpdatedAt { get; set; }
+        public string? ContentPreview => Content?.Length > 80 ? Content.Substring(0, 80) + "..." : Content;
+    }
 }

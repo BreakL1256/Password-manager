@@ -1,24 +1,33 @@
-﻿using SQLite;
-using Password_manager.Shared;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Storage;
+using Password_manager.Entities;
+using Password_manager.Shared;
+using SQLite;
 
-namespace Password_manager.Entities
+namespace Password_manager.Services
 {
     public class RequestHandler
     {
         private readonly SqliteConnectionFactory _connectionFactory;
         private readonly EncryptionAndHashingMethods _tool;
-        public RequestHandler(SqliteConnectionFactory connectionFactory)
+        private readonly ILogger<RequestHandler> _logger;
+        private readonly RestServiceHelper _restServiceHelper;
+        public RequestHandler(SqliteConnectionFactory connectionFactory,
+            ILogger<RequestHandler> logger, 
+            RestServiceHelper restServiceHelper)
         {
             _connectionFactory = connectionFactory;
-            var tool = new EncryptionAndHashingMethods();
-            _tool = tool;
+            _logger = logger;
+            _restServiceHelper = restServiceHelper;
+            _tool = new EncryptionAndHashingMethods();
+            
         }
 
         // Section for interacting with data stored in the vault
@@ -225,7 +234,7 @@ namespace Password_manager.Entities
         public async Task DeleteDataFromAccount(PasswordItem Item)
         {
             ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
-            int UserId = Preferences.Get("CurrentUserId", -1);
+            long UserId = Preferences.Get("CurrentUserId", -1);
             try
             {
                 if (UserId == -1)
@@ -287,10 +296,11 @@ namespace Password_manager.Entities
             // Password hashing for storage
             string hashedPassword = _tool.HashString(password);
 
+            string userIdentifier = Convert.ToBase64String(_tool.GenerateKeys(32));
             try
             {
-                await database.ExecuteAsync("INSERT INTO UserAccounts (Username, Password, KEKSalt, EncryptedDek) VALUES (?, ?, ?, ?)",
-                    username, hashedPassword, Convert.ToBase64String(KEKSalt), encryptedDEKInBase64);
+                await database.ExecuteAsync("INSERT INTO UserAccounts (Username, Password, KEKSalt, EncryptedDek, UserIdentifier) VALUES (?, ?, ?, ?, ?)",
+                    username, hashedPassword, Convert.ToBase64String(KEKSalt), encryptedDEKInBase64, userIdentifier);
 
             }
             catch (Exception ex)
@@ -299,7 +309,7 @@ namespace Password_manager.Entities
             }
         }
 
-        public async Task<int> GetUserAccountId(string username)
+        public async Task<long> GetUserAccountId(string username)
         {
             ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
             try
@@ -317,6 +327,146 @@ namespace Password_manager.Entities
             {
                 Debug.WriteLine("Failed to fetch user account data: " + ex);
                 throw;
+            }
+        }
+
+        // Section for interacting with data related to notes
+
+        public async Task<bool> CreateNote(string content)
+        {
+            ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
+
+            long userId = Preferences.Get("CurrentUserId", -1);
+            try
+            {
+                byte[] DEK = await _restServiceHelper.RetrieveDEK();
+                if(DEK == null)
+                {
+                    throw new InvalidOperationException("DEK is null");
+                }
+
+                string encryptedContent = await Task.Run(() => _tool.Encrypt(content, DEK));
+
+                await database.ExecuteAsync("INSERT INTO Notes (UserId, Content, CreatedAt, LastUpdatedAt) VALUES (?, ?, ?, ?)", userId, encryptedContent, DateTime.UtcNow, DateTime.UtcNow);
+
+                _logger.LogInformation("New Note has been succesfully created");
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Could not create a new note: {ex}", ex);
+                return false;
+            }
+        }
+
+        public async Task DeleteNote(long Id)
+        {
+            ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
+
+            long userId = Preferences.Get("CurrentUserId", -1);
+            try
+            {
+                byte[] DEK = await _restServiceHelper.RetrieveDEK();
+                if (DEK == null)
+                {
+                    throw new InvalidOperationException("DEK is null");
+                }
+                await database.ExecuteAsync("DELETE FROM Notes WHERE Id = ? AND UserId = ?", Id, userId);
+
+                _logger.LogInformation("Note has been succesfully deleted");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Could not delete note: {ex}", ex);
+            }
+        }
+
+        public async Task<List<NoteItem>> GetNotesByUser()
+        {
+            ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
+
+            long userId = Preferences.Get("CurrentUserId", -1);
+            try
+            {
+                byte[] DEK = await _restServiceHelper.RetrieveDEK();
+                if (DEK == null)
+                {
+                    throw new InvalidOperationException("DEK is null");
+                }
+
+                var notes = await database.QueryAsync<Notes>("SELECT * FROM Notes WHERE UserId = ?", userId);
+
+                var noteItems = new List<NoteItem>();
+
+                await Task.Run(() =>
+                {
+                    foreach (var note in notes)
+                    {
+                        note.Content = _tool.Decrypt(note.Content, DEK);
+
+                        var item = new NoteItem
+                        {
+                            Id = note.Id,
+                            UserId = note.UserId,
+                            Content = note.Content,
+                            CreatedAt = note.CreatedAt,
+                            LastUpdatedAt = note.LastUpdatedAt,
+                        };
+
+                        noteItems.Add(item);
+                    }
+                });
+
+                _logger.LogInformation("Notes have been succesfully retrieved");
+                return noteItems;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Could not retrieve notes: {ex}", ex);
+                return [];
+            }
+        }
+
+        public async Task<bool> UpdateNote(long id, string content)
+        {
+            ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
+
+            long userId = Preferences.Get("CurrentUserId", -1);
+            try
+            {
+                byte[] DEK = await _restServiceHelper.RetrieveDEK();
+                if (DEK == null)
+                {
+                    throw new InvalidOperationException("DEK is null");
+                }
+                var currentNotes = await database.QueryAsync<Notes>("SELECT * FROM Notes WHERE Id = ? AND UserId = ?", id, userId);
+
+                if(currentNotes == null || !currentNotes.Any())
+                {
+                    throw new Exception("Note doesn't exist");
+                }
+
+                string storedContent = await Task.Run(() => _tool.Decrypt(currentNotes[0].Content, DEK));
+
+                if(storedContent == content)
+                {
+                    await database.ExecuteAsync("UPDATE Notes SET LastUpdatedAt = ? WHERE Id = ? AND UserId = ?", DateTime.UtcNow, id, userId);
+                }
+                else if(storedContent != content)
+                {
+                    string encryptedNewContent = await Task.Run(() => _tool.Encrypt(content, DEK));
+                    await database.ExecuteAsync("UPDATE Notes SET Content = ?, LastUpdatedAt = ? WHERE Id = ? AND UserId = ?", encryptedNewContent, DateTime.UtcNow, id, userId);
+                }
+
+                _logger.LogInformation("Note has been succesfully updated");
+                return true;
+                
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Could not update note: {ex}", ex);
+                return false;
             }
         }
     }

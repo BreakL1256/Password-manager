@@ -1,6 +1,6 @@
-using Password_manager.Entities;
 using System.Text;
-
+using Password_manager.Entities;
+using Password_manager.Services;
 namespace Password_manager.Templates;
 
 public partial class AddNewDataView : ContentView

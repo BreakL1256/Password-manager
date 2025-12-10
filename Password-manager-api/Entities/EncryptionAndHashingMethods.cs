@@ -1,23 +1,16 @@
-﻿using System;
-using System.Buffers.Binary;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Buffers.Binary;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 using Konscious.Security.Cryptography;
-using Microsoft.Extensions.Logging;
-using SQLite;
-using Password_manager.Shared;
 
-namespace Password_manager.Entities
+namespace Password_manager_api.Entities
 {
-    class EncryptionAndHashingMethods
+    public class EncryptionAndHashingMethods
     {
-        private const int SaltSize = 16; 
-        private const int HashSize = 32; 
-        private const int DegreeOfParallelism = 8; 
-        private const int Iterations = 4; 
+        private const int SaltSize = 16;
+        private const int HashSize = 32;
+        private const int DegreeOfParallelism = 8;
+        private const int Iterations = 4;
         private const int MemorySize = 1024 * 1024;
 
         public string HashString(string password)
@@ -30,7 +23,7 @@ namespace Password_manager.Entities
             }
 
             byte[] hash = HashString(password, salt);
-            
+
             // Store salt with password and convert to base64
             var combinedBytes = new byte[salt.Length + hash.Length];
             Array.Copy(salt, 0, combinedBytes, 0, salt.Length);
@@ -65,7 +58,7 @@ namespace Password_manager.Entities
         }
 
         public bool VerifyPassword(string password, string hashedPassword)
-        { 
+        {
             byte[] combinedBytes = Convert.FromBase64String(hashedPassword);
 
             // Extract salt and hash
@@ -92,8 +85,8 @@ namespace Password_manager.Entities
             // We write everything into one big array for easier encoding
             int encryptedDataLength = 4 + nonceSize + 4 + tagSize + cipherSize;
             Span<byte> encryptedData = encryptedDataLength < 1024
-                                     ? stackalloc byte[encryptedDataLength]
-                                     : new byte[encryptedDataLength].AsSpan();
+                                        ? stackalloc byte[encryptedDataLength]
+                                        : new byte[encryptedDataLength].AsSpan();
 
             // Copy parameters
             BinaryPrimitives.WriteInt32LittleEndian(encryptedData.Slice(0, 4), nonceSize);
@@ -130,8 +123,8 @@ namespace Password_manager.Entities
 
             // Decrypt
             Span<byte> plainBytes = cipherSize < 1024
-                                  ? stackalloc byte[cipherSize]
-                                  : new byte[cipherSize];
+                                    ? stackalloc byte[cipherSize]
+                                    : new byte[cipherSize];
             using var aes = new AesGcm(_key);
             aes.Decrypt(nonce, cipherBytes, tag, plainBytes);
 

@@ -59,6 +59,7 @@ namespace Password_manager
             {
                 await database.CreateTableAsync<ProgramDto>();
                 await database.CreateTableAsync<UserAccounts>();
+                await database.CreateTableAsync<Notes>();
             }
             catch (Exception ex)
             {

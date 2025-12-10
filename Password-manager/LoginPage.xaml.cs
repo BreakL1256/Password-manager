@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
-using Password_manager.Entities;
 using Microsoft.Maui.Storage;
+using Password_manager.Services;
 
 namespace Password_manager;
 
@@ -55,7 +55,7 @@ public partial class LoginPage : ContentPage
 		{
 			try
 			{
-				int UserId = await _handler.GetUserAccountId(username);
+				long UserId = await _handler.GetUserAccountId(username);
 				Preferences.Set("CurrentUserId", UserId);
 				Preferences.Set("CurrentUsername", username);
 				Preferences.Set("IsLoggedIn", true);

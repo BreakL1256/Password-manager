@@ -1,6 +1,12 @@
-﻿namespace Password_manager_api.Entities
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Password_manager.Entities
 {
-    public class DTOs
+    internal class APIDtos
     {
     }
     public class LoginDTO

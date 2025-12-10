@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Password_manager.Templates.NoteVaultView"
+             x:Name="NoteVault">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <Button Command="{Binding AddNewNoteCommand}"
+            Text="+"
+            WidthRequest="40"
+            HeightRequest="40"
+            BackgroundColor="Purple"
+            TextColor="White"
+            CornerRadius="5"
+            ZIndex="100"
+            HorizontalOptions="Start"
+            VerticalOptions="Start"
+            Margin="10"/>
+
+        <CollectionView Grid.Column="0"
+                        ItemsSource="{Binding NoteList}"
+                        SelectedItem="{Binding SelectedNote}"
+                        SelectionMode="Single"
+                        BackgroundColor="Transparent">
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Grid HeightRequest="80" 
+                          Padding="16,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Label Grid.Column="0"
+                               Text="{Binding ContentPreview}"
+                               FontSize="16"
+                               TextColor="{AppThemeBinding Light=#000000, Dark=#FFFFFF}"
+                               VerticalOptions="Center"
+                               Margin="0"> 
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding Source={x:Reference NoteVault}, Path=OpenNoteEditorCommand}"
+                                    CommandParameter="{Binding}"/>
+                            </Label.GestureRecognizers>
+                        </Label>
+
+                        <Button Grid.Column="1"
+                                Text="•••"
+                                BackgroundColor="Transparent"
+                                TextColor="{AppThemeBinding Light=#8E8E93, Dark=#8E8E93}"
+                                WidthRequest="40"
+                                HeightRequest="40"
+                                BorderWidth="0"
+                                FontSize="12">
+                            <FlyoutBase.ContextFlyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem 
+                                        Text="Delete"
+                                        Command="{Binding Source={x:Reference NoteVault}, Path=DeleteNoteCommand}"
+                                        CommandParameter="{Binding}"/>
+                                </MenuFlyout>
+                            </FlyoutBase.ContextFlyout>
+                        </Button>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Vertical"/>
+            </CollectionView.ItemsLayout>
+        </CollectionView>
+    </Grid>
+</ContentView>
