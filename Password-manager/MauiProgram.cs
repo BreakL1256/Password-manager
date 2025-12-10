@@ -36,6 +36,7 @@ namespace Password_manager
             builder.Services.AddTransient<PopupRegisterView>();
             builder.Services.AddTransient<PopupLoginView>();
             builder.Services.AddTransient<PopupAddNoteView>();
+            builder.Services.AddTransient<PopupEditNoteView>();
             return builder.Build();
         }
     }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -331,7 +332,7 @@ namespace Password_manager.Services
 
         // Section for interacting with data related to notes
 
-        public async Task CreateNote(string content)
+        public async Task<bool> CreateNote(string content)
         {
             ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
 
@@ -346,21 +347,24 @@ namespace Password_manager.Services
 
                 string encryptedContent = await Task.Run(() => _tool.Encrypt(content, DEK));
 
-                await database.ExecuteAsync("INSERT INTO Notes (UserId, Content, CreatedAt) VALUES (?, ?, ?)", userId, encryptedContent, DateTime.UtcNow);
+                await database.ExecuteAsync("INSERT INTO Notes (UserId, Content, CreatedAt, LastUpdatedAt) VALUES (?, ?, ?, ?)", userId, encryptedContent, DateTime.UtcNow, DateTime.UtcNow);
 
                 _logger.LogInformation("New Note has been succesfully created");
+
+                return true;
             }
             catch (Exception ex)
             {
                 _logger.LogError("Could not create a new note: {ex}", ex);
+                return false;
             }
         }
 
-        public async Task DeleteNode(long Id)
+        public async Task DeleteNote(long Id)
         {
             ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
 
-            long UserId = Preferences.Get("CurrentUserId", -1);
+            long userId = Preferences.Get("CurrentUserId", -1);
             try
             {
                 byte[] DEK = await _restServiceHelper.RetrieveDEK();
@@ -368,7 +372,7 @@ namespace Password_manager.Services
                 {
                     throw new InvalidOperationException("DEK is null");
                 }
-                await database.ExecuteAsync("DELETE FROM Notes WHERE Id = ?", Id);
+                await database.ExecuteAsync("DELETE FROM Notes WHERE Id = ? AND UserId = ?", Id, userId);
 
                 _logger.LogInformation("Note has been succesfully deleted");
             }
@@ -406,7 +410,8 @@ namespace Password_manager.Services
                             Id = note.Id,
                             UserId = note.UserId,
                             Content = note.Content,
-                            CreatedAt = note.CreatedAt
+                            CreatedAt = note.CreatedAt,
+                            LastUpdatedAt = note.LastUpdatedAt,
                         };
 
                         noteItems.Add(item);
@@ -420,6 +425,48 @@ namespace Password_manager.Services
             {
                 _logger.LogError("Could not retrieve notes: {ex}", ex);
                 return [];
+            }
+        }
+
+        public async Task<bool> UpdateNote(long id, string content)
+        {
+            ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
+
+            long userId = Preferences.Get("CurrentUserId", -1);
+            try
+            {
+                byte[] DEK = await _restServiceHelper.RetrieveDEK();
+                if (DEK == null)
+                {
+                    throw new InvalidOperationException("DEK is null");
+                }
+                var currentNotes = await database.QueryAsync<Notes>("SELECT * FROM Notes WHERE Id = ? AND UserId = ?", id, userId);
+
+                if(currentNotes == null || !currentNotes.Any())
+                {
+                    throw new Exception("Note doesn't exist");
+                }
+
+                string storedContent = await Task.Run(() => _tool.Decrypt(currentNotes[0].Content, DEK));
+
+                if(storedContent == content)
+                {
+                    await database.ExecuteAsync("UPDATE Notes SET LastUpdatedAt = ? WHERE Id = ? AND UserId = ?", DateTime.UtcNow, id, userId);
+                }
+                else if(storedContent != content)
+                {
+                    string encryptedNewContent = await Task.Run(() => _tool.Encrypt(content, DEK));
+                    await database.ExecuteAsync("UPDATE Notes SET Content = ?, LastUpdatedAt = ? WHERE Id = ? AND UserId = ?", encryptedNewContent, DateTime.UtcNow, id, userId);
+                }
+
+                _logger.LogInformation("Note has been succesfully updated");
+                return true;
+                
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Could not update note: {ex}", ex);
+                return false;
             }
         }
     }
