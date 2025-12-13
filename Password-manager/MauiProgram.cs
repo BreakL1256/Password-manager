@@ -1,8 +1,9 @@
-﻿using Password_manager.Shared;
-using Password_manager.Templates;
+﻿using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
-using CommunityToolkit.Maui;
 using Password_manager.Services;
+using Password_manager.Shared;
+using Password_manager.Templates;
+using Syncfusion.Maui.Core.Hosting;
 
 namespace Password_manager
 {
@@ -14,6 +15,7 @@ namespace Password_manager
             builder
                 .UseMauiApp<App>()
                 .UseMauiCommunityToolkit()
+                .ConfigureSyncfusionCore()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");

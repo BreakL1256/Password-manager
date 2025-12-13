@@ -30,6 +30,24 @@ namespace Password_manager.Entities
         public string Content { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime LastUpdatedAt { get; set; }
-        public string? ContentPreview => Content?.Length > 80 ? Content.Substring(0, 80) + "..." : Content;
+        public string ContentPreview
+        {
+            get
+            {
+                // Strip HTML tags and truncate
+                var plainText = System.Text.RegularExpressions.Regex.Replace(
+                    Content ?? "",
+                    "<.*?>",
+                    string.Empty
+                );
+
+                // Decode HTML entities like &nbsp; &amp;
+                plainText = System.Net.WebUtility.HtmlDecode(plainText);
+
+                return plainText.Length > 80
+                    ? plainText.Substring(0, 80) + "..."
+                    : plainText;
+            }
+        }
     }
 }
