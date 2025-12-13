@@ -127,11 +127,9 @@ namespace Password_manager.Services
             string? userPassword = await SecureStorage.Default.GetAsync("CurrentPassword");
             if (string.IsNullOrEmpty(userPassword)) throw new Exception("Session expired.");
 
-            // Derive Keys
             byte[] kekSalt = Convert.FromBase64String(user.KEKSalt);
             byte[] KEK = await Task.Run(() => _tool.HashString(userPassword, kekSalt));
 
-            // Unlock DEK
             string dekBase64 = await Task.Run(() => _tool.Decrypt(user.EncryptedDEK, KEK));
             return Convert.FromBase64String(dekBase64);
         }
@@ -153,7 +151,8 @@ namespace Password_manager.Services
                 )
                 {
                     Id = dto.Id,
-                    IsDeleted = dto.IsDeleted
+                    IsDeleted = dto.IsDeleted,
+                    DeletedAt = dto.DeletedAt
                 }).ToList();
 
                 await Task.Run(() =>
@@ -284,7 +283,8 @@ namespace Password_manager.Services
                                 Content = clearContent,
                                 CreatedAt = note.CreatedAt,
                                 LastUpdatedAt = note.LastUpdatedAt,
-                                IsDeleted = note.IsDeleted
+                                IsDeleted = note.IsDeleted,
+                                DeletedAt = note.DeletedAt // Populate DeletedAt from DB
                             });
                         }
                         catch { /* Ignore decrypt errors on notes */ }
@@ -375,10 +375,6 @@ namespace Password_manager.Services
                 _logger.LogError("Could not restore note: {ex}", ex);
             }
         }
-
-        // ---------------------------------------------------------
-        // 5. UTILITIES
-        // ---------------------------------------------------------
 
         public async Task CleanupTrash()
         {

@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using CommunityToolkit.Mvvm.Input;
+using System.Linq;
 
 namespace Password_manager.Templates;
 
@@ -37,11 +38,15 @@ public partial class PasswordVaultView : ContentView, INotifyPropertyChanged
     }
 
     private async void OnViewLoaded(object sender, EventArgs e) => await LoadData();
+
     private void OnShowAddView(object sender, EventArgs e)
     {
         var view = _services.GetService<AddNewDataView>();
-        view.OnDataAdded = async () => await LoadData();
-        DynamicContentView.Content = view;
+        if (view != null)
+        {
+            view.OnDataAdded = async () => await LoadData();
+            DynamicContentView.Content = view;
+        }
     }
 
     private async Task DeleteSelectedData(PasswordItem? Item)
@@ -59,6 +64,11 @@ public partial class PasswordVaultView : ContentView, INotifyPropertyChanged
         {
             await _handler.DeleteDataFromAccount(Item);
             await LoadData();
+
+            if (DynamicContentView.Content is ViewDataView v && v.BindingContext == Item)
+            {
+                DynamicContentView.Content = null;
+            }
         }
     }
 
@@ -85,8 +95,15 @@ public partial class PasswordVaultView : ContentView, INotifyPropertyChanged
     {
         _isTrashMode = !_isTrashMode;
         _ = LoadData();
+        DynamicContentView.Content = null;
     }
-    private void OnSearchBarTextChanged(object sender, TextChangedEventArgs e) { _currentSearchText = e.NewTextValue ?? ""; FilterPasswords(); }
+
+    private void OnSearchBarTextChanged(object sender, TextChangedEventArgs e)
+    {
+        _currentSearchText = e.NewTextValue ?? "";
+        FilterPasswords();
+    }
+
     private void OnFilterAll(object sender, EventArgs e) => SetCategory("All");
     private void OnFilterGeneral(object sender, EventArgs e) => SetCategory("General");
     private void OnFilterWork(object sender, EventArgs e) => SetCategory("Work");
@@ -102,7 +119,6 @@ public partial class PasswordVaultView : ContentView, INotifyPropertyChanged
 
     private void UpdateFilterButtonsUI()
     {
-        // ... (Same UI button color logic as previously provided) ...
         var blueColor = Color.FromArgb("#007AFF");
         var orangeColor = Color.FromArgb("#FF9500");
         var purpleColor = Color.FromArgb("#AF52DE");
@@ -144,7 +160,43 @@ public partial class PasswordVaultView : ContentView, INotifyPropertyChanged
 
     private void OnShowDataView(object sender, TappedEventArgs e)
     {
-        if (e.Parameter is PasswordItem selected) DynamicContentView.Content = new ViewDataView(selected);
+        if (e.Parameter is PasswordItem selected)
+        {
+            ShowViewData(selected);
+        }
+    }
+
+    private void ShowViewData(PasswordItem item)
+    {
+        // Create the view for the selected item
+        var view = new ViewDataView(item);
+
+        // Subscribe to the EditRequested event to handle navigation to Edit view
+        view.EditRequested += (s, itemToEdit) =>
+        {
+            var editView = new EditDataView(_handler, itemToEdit);
+
+            // If user cancels, go back to reading view
+            editView.Cancelled += (s2, e2) => ShowViewData(itemToEdit);
+
+            // If user saves, reload data and refresh the view
+            editView.Saved += async (s2, e2) =>
+            {
+                await LoadData();
+
+                // Find the updated item in the refreshed list
+                var updatedItem = _allPasswords.FirstOrDefault(p => p.Id == itemToEdit.Id);
+
+                if (updatedItem != null)
+                    ShowViewData(updatedItem);
+                else
+                    DynamicContentView.Content = null;
+            };
+
+            DynamicContentView.Content = editView;
+        };
+
+        DynamicContentView.Content = view;
     }
 
     public PasswordItem? SelectedPassword
@@ -152,6 +204,7 @@ public partial class PasswordVaultView : ContentView, INotifyPropertyChanged
         get => _selectedPassword;
         set { _selectedPassword = value; OnPropertyChanged(); }
     }
+
     public event PropertyChangedEventHandler? PropertyChanged;
     protected void OnPropertyChanged([CallerMemberName] string? name = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 }

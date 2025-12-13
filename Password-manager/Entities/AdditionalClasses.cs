@@ -26,8 +26,27 @@ namespace Password_manager.Entities
         public string Category { get; set; }
 
         public bool IsDeleted { get; set; }
+        // Added property to track deletion time
+        public DateTime? DeletedAt { get; set; }
 
         public string DeleteActionText => IsDeleted ? "Delete Permanently" : "Delete";
+        public string RemainingTime
+        {
+            get
+            {
+                if (!IsDeleted || DeletedAt == null) return string.Empty;
+                var remaining = DeletedAt.Value.AddDays(5) - DateTime.UtcNow;
+
+                if (remaining.TotalDays > 1)
+                    return $"{(int)remaining.TotalDays} days left";
+                if (remaining.TotalHours > 1)
+                    return $"{(int)remaining.TotalHours} hours left";
+                if (remaining.TotalMinutes > 0)
+                    return $"{(int)remaining.TotalMinutes} mins left";
+
+                return "Deleting soon";
+            }
+        }
     }
 
     public class NoteItem
@@ -40,6 +59,25 @@ namespace Password_manager.Entities
         public string? ContentPreview => Content?.Length > 80 ? Content.Substring(0, 80) + "..." : Content;
 
         public bool IsDeleted { get; set; }
+        public DateTime? DeletedAt { get; set; }
         public string DeleteActionText => IsDeleted ? "Delete Permanently" : "Delete";
+
+        public string RemainingTime
+        {
+            get
+            {
+                if (!IsDeleted || DeletedAt == null) return string.Empty;
+                var remaining = DeletedAt.Value.AddDays(5) - DateTime.UtcNow;
+
+                if (remaining.TotalDays > 1)
+                    return $"{(int)remaining.TotalDays} days left";
+                if (remaining.TotalHours > 1)
+                    return $"{(int)remaining.TotalHours} hours left";
+                if (remaining.TotalMinutes > 0)
+                    return $"{(int)remaining.TotalMinutes} mins left";
+
+                return "Deleting soon";
+            }
+        }
     }
 }

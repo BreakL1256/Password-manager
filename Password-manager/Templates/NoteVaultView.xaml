@@ -52,6 +52,31 @@
                         </Label>
 
                         <HorizontalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center">
+
+                            <Label Text="{Binding RemainingTime}"
+                                   IsVisible="{Binding IsDeleted}"
+                                   TextColor="{AppThemeBinding Light=#FF3B30, Dark=#FF453A}"
+                                   FontSize="12"
+                                   VerticalOptions="Center"
+                                   Margin="0,0,8,0"/>
+
+                            <Button Text="Edit"
+                                    Command="{Binding Source={x:Reference NoteVault}, Path=OpenNoteEditorCommand}"
+                                    CommandParameter="{Binding}"
+                                    BackgroundColor="{AppThemeBinding Light=#E5E5EA, Dark=#3A3A3C}"
+                                    TextColor="{AppThemeBinding Light=#007AFF, Dark=#0A84FF}"
+                                    FontSize="12"
+                                    HeightRequest="30"
+                                    Padding="10,0"
+                                    CornerRadius="6"
+                                    BorderWidth="0">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding IsDeleted}" Value="True">
+                                        <Setter Property="IsVisible" Value="False" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+
                             <Button Text="Restore"
                                     IsVisible="{Binding IsDeleted}"
                                     Command="{Binding Source={x:Reference NoteVault}, Path=RestoreNoteCommand}"
