@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Password_manager.Templates.NoteVaultView"
              x:Name="NoteVault">
-    <Grid>
+    <Grid
+        BackgroundColor="#EFE9E3">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
@@ -17,19 +18,16 @@
                 x:Name="AddNoteBtn"
                 Command="{Binding AddNewNoteCommand}"
                 Text="+"
-                WidthRequest="40"
                 HeightRequest="40"
-                BackgroundColor="Purple"
-                TextColor="White"
+                BackgroundColor="#D3C3AF"
+                TextColor="#EFE9E3"
                 CornerRadius="5"
-                HorizontalOptions="Start"
                 Margin="10"/>
 
         <CollectionView Grid.Row="1"
                         ItemsSource="{Binding NoteList}"
                         SelectedItem="{Binding SelectedNote}"
-                        SelectionMode="Single"
-                        BackgroundColor="Transparent">
+                        SelectionMode="Single">
 
             <CollectionView.ItemTemplate>
                 <DataTemplate>
@@ -63,8 +61,8 @@
                             <Button Text="Edit"
                                     Command="{Binding Source={x:Reference NoteVault}, Path=OpenNoteEditorCommand}"
                                     CommandParameter="{Binding}"
-                                    BackgroundColor="{AppThemeBinding Light=#E5E5EA, Dark=#3A3A3C}"
-                                    TextColor="{AppThemeBinding Light=#007AFF, Dark=#0A84FF}"
+                                    BackgroundColor="{AppThemeBinding Light=#E9E1D7, Dark=#3A3A3C}"
+                                    TextColor="{AppThemeBinding Light=#50483E, Dark=#0A84FF}"
                                     FontSize="12"
                                     HeightRequest="30"
                                     Padding="10,0"
@@ -112,7 +110,7 @@
 
         <Button Grid.Row="2"
                 x:Name="TrashToggleBtn"
-                Text="Show Trash"
+                Text="Trash"
                 Clicked="OnToggleTrash"
                 BackgroundColor="Transparent"
                 TextColor="{AppThemeBinding Light=#8E8E93, Dark=#8E8E93}"

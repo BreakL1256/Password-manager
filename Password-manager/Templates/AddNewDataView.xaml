@@ -6,7 +6,7 @@
     <ScrollView>
         <VerticalStackLayout Spacing="0" Padding="20">
 
-            <Border BackgroundColor="{AppThemeBinding Light=#F2F2F7, Dark=#2C2C2E}"
+            <Border BackgroundColor="{AppThemeBinding Light=#DED2C3, Dark=#2C2C2E}"
                    Padding="16"
                    StrokeShape="RoundRectangle 10"
                    Stroke="Transparent"
@@ -24,7 +24,7 @@
                 </VerticalStackLayout>
             </Border>
 
-            <Border BackgroundColor="{AppThemeBinding Light=#F2F2F7, Dark=#2C2C2E}"
+            <Border BackgroundColor="{AppThemeBinding Light=#DED2C3, Dark=#2C2C2E}"
                    Padding="16"
                    StrokeShape="RoundRectangle 10"
                    Stroke="Transparent"
@@ -91,7 +91,7 @@
                 </VerticalStackLayout>
             </Border>
 
-            <Border BackgroundColor="{AppThemeBinding Light=#F2F2F7, Dark=#2C2C2E}"
+            <Border BackgroundColor="{AppThemeBinding Light=#DED2C3, Dark=#2C2C2E}"
                    Padding="16"
                    StrokeShape="RoundRectangle 10"
                    Stroke="Transparent"
@@ -109,7 +109,7 @@
                 </VerticalStackLayout>
             </Border>
 
-            <Border BackgroundColor="{AppThemeBinding Light=#F2F2F7, Dark=#2C2C2E}"
+            <Border BackgroundColor="{AppThemeBinding Light=#DED2C3, Dark=#2C2C2E}"
                    Padding="16"
                    StrokeShape="RoundRectangle 10"
                    Stroke="Transparent"
@@ -128,24 +128,25 @@
             </Border>
 
             <VerticalStackLayout Spacing="12">
+                <Button x:Name="GeneratePasswordButton" 
+                        Text="Generate Secure Password" 
+                        Clicked="OnGeneratePasswordClicked" 
+                        BackgroundColor="{AppThemeBinding Light=#E9E1D7, Dark=#2C2C2E}"
+                        TextColor="{AppThemeBinding Light=#50483E, Dark=#0A84FF}"
+                        HeightRequest="44"
+                        CornerRadius="10"
+                        BorderWidth="0"
+                        FontSize="16"/>         
                 <Button Text="Add" 
                         Clicked="OnNewDataSubmit"
-                        BackgroundColor="{AppThemeBinding Light=#007AFF, Dark=#0A84FF}"
+                        BackgroundColor="{AppThemeBinding Light=#50483E, Dark=#0A84FF}"
                         TextColor="White"
                         HeightRequest="50"
                         CornerRadius="10"
                         BorderWidth="0"
                         FontSize="16"/>
 
-                <Button x:Name="GeneratePasswordButton" 
-                        Text="Generate Secure Password" 
-                        Clicked="OnGeneratePasswordClicked" 
-                        BackgroundColor="{AppThemeBinding Light=#F2F2F7, Dark=#2C2C2E}"
-                        TextColor="{AppThemeBinding Light=#007AFF, Dark=#0A84FF}"
-                        HeightRequest="44"
-                        CornerRadius="10"
-                        BorderWidth="0"
-                        FontSize="16"/>
+                
             </VerticalStackLayout>
 
         </VerticalStackLayout>

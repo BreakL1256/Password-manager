@@ -33,6 +33,9 @@ public partial class PasswordVaultView : ContentView, INotifyPropertyChanged
         DeleteCommand = new AsyncRelayCommand<PasswordItem>(DeleteSelectedData);
         RestoreCommand = new AsyncRelayCommand<PasswordItem>(RestoreSelectedData);
 
+        // Initialize the button colors immediately
+        UpdateFilterButtonsUI();
+
         BindingContext = this;
         this.Loaded += OnViewLoaded;
     }
@@ -87,7 +90,7 @@ public partial class PasswordVaultView : ContentView, INotifyPropertyChanged
         FilterPasswords();
 
         // Update UI Text/Visibility
-        TrashToggleBtn.Text = _isTrashMode ? "Back to Vault" : "Show Trash";
+        TrashToggleBtn.Text = _isTrashMode ? "Back" : "Trash";
         AddPasswordBtn.IsVisible = !_isTrashMode;
     }
 
@@ -168,23 +171,18 @@ public partial class PasswordVaultView : ContentView, INotifyPropertyChanged
 
     private void ShowViewData(PasswordItem item)
     {
-        // Create the view for the selected item
         var view = new ViewDataView(item);
 
-        // Subscribe to the EditRequested event to handle navigation to Edit view
         view.EditRequested += (s, itemToEdit) =>
         {
             var editView = new EditDataView(_handler, itemToEdit);
 
-            // If user cancels, go back to reading view
             editView.Cancelled += (s2, e2) => ShowViewData(itemToEdit);
 
-            // If user saves, reload data and refresh the view
             editView.Saved += async (s2, e2) =>
             {
                 await LoadData();
 
-                // Find the updated item in the refreshed list
                 var updatedItem = _allPasswords.FirstOrDefault(p => p.Id == itemToEdit.Id);
 
                 if (updatedItem != null)

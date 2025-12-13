@@ -21,26 +21,26 @@
                         FontSize="14"
                         CornerRadius="8"
                         Padding="12,0"
-                        BackgroundColor="{AppThemeBinding Light=#E5E5EA, Dark=#3A3A3C}"
-                        TextColor="{AppThemeBinding Light=#007AFF, Dark=#0A84FF}"
+                        BackgroundColor="{AppThemeBinding Light=#E4DACD, Dark=#3A3A3C}"
+                        TextColor="{AppThemeBinding Light=#50483E, Dark=#0A84FF}"
                         BorderWidth="0"/>
             </Grid>
 
-            <Border BackgroundColor="{AppThemeBinding Light=#F2F2F7, Dark=#2C2C2E}" Padding="16" StrokeShape="RoundRectangle 10" Stroke="Transparent" Margin="0,0,0,16">
+            <Border BackgroundColor="{AppThemeBinding Light=#DED2C3, Dark=#2C2C2E}" Padding="16" StrokeShape="RoundRectangle 10" Stroke="Transparent" Margin="0,0,0,16">
                 <VerticalStackLayout Spacing="4">
                     <Label Text="Category" FontSize="13" TextColor="{AppThemeBinding Light=#8E8E93, Dark=#8E8E93}"/>
                     <Label x:Name="CategoryField" FontSize="17" TextColor="{AppThemeBinding Light=#000000, Dark=#FFFFFF}"/>
                 </VerticalStackLayout>
             </Border>
 
-            <Border BackgroundColor="{AppThemeBinding Light=#F2F2F7, Dark=#2C2C2E}" Padding="16" StrokeShape="RoundRectangle 10" Stroke="Transparent" Margin="0,0,0,16">
+            <Border BackgroundColor="{AppThemeBinding Light=#DED2C3, Dark=#2C2C2E}" Padding="16" StrokeShape="RoundRectangle 10" Stroke="Transparent" Margin="0,0,0,16">
                 <VerticalStackLayout Spacing="4">
                     <Label Text="Username" FontSize="13" TextColor="{AppThemeBinding Light=#8E8E93, Dark=#8E8E93}"/>
                     <Label x:Name="UsernameField" FontSize="17" TextColor="{AppThemeBinding Light=#000000, Dark=#FFFFFF}"/>
                 </VerticalStackLayout>
             </Border>
 
-            <Border BackgroundColor="{AppThemeBinding Light=#F2F2F7, Dark=#2C2C2E}" Padding="16" StrokeShape="RoundRectangle 10" Stroke="Transparent" Margin="0,0,0,16">
+            <Border BackgroundColor="{AppThemeBinding Light=#DED2C3, Dark=#2C2C2E}" Padding="16" StrokeShape="RoundRectangle 10" Stroke="Transparent" Margin="0,0,0,16">
                 <VerticalStackLayout Spacing="4">
                     <Label Text="Password" FontSize="13" TextColor="{AppThemeBinding Light=#8E8E93, Dark=#8E8E93}"/>
                     <Grid VerticalOptions="Center">
@@ -53,7 +53,7 @@
                                 <TapGestureRecognizer Tapped="OnPasswordTapped" />
                             </Label.GestureRecognizers>
                         </Label>
-                        <Button x:Name="TogglePasswordButton" Grid.Column="1" Text="SHOW" BackgroundColor="Transparent" TextColor="{AppThemeBinding Light=#007AFF, Dark=#0A84FF}" FontSize="13" Padding="12,8" VerticalOptions="Center" HeightRequest="30" Clicked="OnTogglePasswordClicked" />
+                        <Button x:Name="TogglePasswordButton" Grid.Column="1" Text="SHOW" BackgroundColor="Transparent" TextColor="{AppThemeBinding Light=#50483E, Dark=#0A84FF}" FontSize="13" Padding="12,8" VerticalOptions="Center" HeightRequest="30" Clicked="OnTogglePasswordClicked" />
                     </Grid>
                 </VerticalStackLayout>
             </Border>
