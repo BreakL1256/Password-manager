@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Storage;
@@ -19,56 +17,151 @@ namespace Password_manager.Services
         private readonly EncryptionAndHashingMethods _tool;
         private readonly ILogger<RequestHandler> _logger;
         private readonly RestServiceHelper _restServiceHelper;
+
         public RequestHandler(SqliteConnectionFactory connectionFactory,
-            ILogger<RequestHandler> logger, 
+            ILogger<RequestHandler> logger,
             RestServiceHelper restServiceHelper)
         {
             _connectionFactory = connectionFactory;
             _logger = logger;
             _restServiceHelper = restServiceHelper;
             _tool = new EncryptionAndHashingMethods();
-            
+
+            Task.Run(CleanupTrash);
         }
 
-        // Section for interacting with data stored in the vault
-        public async Task<List<PasswordItem>> GetAccountSavedData()
+
+        public async Task RegisterNewUserAccount(string username, string password)
         {
             ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
-            int UserId = Preferences.Get("CurrentUserId", -1);
 
             try
             {
-                var users = await database.QueryAsync<UserAccounts>("SELECT * FROM UserAccounts WHERE Id = ?", UserId);
 
-                if (users == null || !users.Any())
+                var existing = await database.Table<UserAccounts>().Where(u => u.Username == username).FirstOrDefaultAsync();
+                if (existing != null)
                 {
-                    throw new Exception("Current user couldn't be found");
+                    Preferences.Set("CurrentUserId", existing.Id);
+                    await SecureStorage.Default.SetAsync("CurrentPassword", password);
+                    return;
                 }
 
-                string? userPassword = await SecureStorage.Default.GetAsync("CurrentPassword");
+                byte[] kekSalt = _tool.GenerateKeys(16);
 
-                byte[] KEKSalt = Convert.FromBase64String(users[0].KEKSalt);
-                byte[] KEK = await Task.Run(() => _tool.HashString(userPassword, KEKSalt));
-                string DEKInBase64 = await Task.Run(() => _tool.Decrypt(users[0].EncryptedDEK, KEK));
-                byte[] DEK = Convert.FromBase64String(DEKInBase64);
+                byte[] KEK = _tool.HashString(password, kekSalt);
 
-                var dtos = await database.QueryAsync<ProgramDto>("SELECT * FROM Accounts WHERE UserId = ?", UserId);
+                byte[] DEK = _tool.GenerateKeys(32);
+
+                string encryptedDEK = _tool.Encrypt(Convert.ToBase64String(DEK), KEK);
+
+                var newUser = new UserAccounts
+                {
+                    Username = username,
+                    KEKSalt = Convert.ToBase64String(kekSalt),
+                    EncryptedDEK = encryptedDEK
+                };
+
+                await database.InsertAsync(newUser);
+
+                var savedUser = await database.Table<UserAccounts>().Where(u => u.Username == username).FirstOrDefaultAsync();
+                if (savedUser != null)
+                {
+                    Preferences.Set("CurrentUserId", savedUser.Id);
+                    await SecureStorage.Default.SetAsync("CurrentPassword", password);
+                    Debug.WriteLine($"✅ Local User Created: {username} (ID: {savedUser.Id})");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"❌ Register Failed: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<bool> CheckUserAccount(string username, string password)
+        {
+            ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
+            try
+            {
+                var user = await database.Table<UserAccounts>().Where(u => u.Username == username).FirstOrDefaultAsync();
+                if (user == null) return false;
+
+                byte[] kekSalt = Convert.FromBase64String(user.KEKSalt);
+                byte[] KEK = _tool.HashString(password, kekSalt);
+
+                try
+                {
+                    string dekStr = _tool.Decrypt(user.EncryptedDEK, KEK);
+
+                    Preferences.Set("CurrentUserId", user.Id);
+                    await SecureStorage.Default.SetAsync("CurrentPassword", password);
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Login Check Failed: {ex}");
+                return false;
+            }
+        }
+
+        public async Task<long> GetUserAccountId(string username)
+        {
+            ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
+            var user = await database.Table<UserAccounts>().Where(u => u.Username == username).FirstOrDefaultAsync();
+            return user?.Id ?? 0;
+        }
+
+        private async Task<byte[]> GetLocalDekAsync(ISQLiteAsyncConnection database)
+        {
+            int userId = Preferences.Get("CurrentUserId", -1);
+            if (userId == -1) throw new Exception("No user logged in.");
+
+            var user = await database.Table<UserAccounts>().Where(u => u.Id == userId).FirstOrDefaultAsync();
+            if (user == null) throw new Exception("User record not found.");
+
+            string? userPassword = await SecureStorage.Default.GetAsync("CurrentPassword");
+            if (string.IsNullOrEmpty(userPassword)) throw new Exception("Session expired.");
+
+            // Derive Keys
+            byte[] kekSalt = Convert.FromBase64String(user.KEKSalt);
+            byte[] KEK = await Task.Run(() => _tool.HashString(userPassword, kekSalt));
+
+            // Unlock DEK
+            string dekBase64 = await Task.Run(() => _tool.Decrypt(user.EncryptedDEK, KEK));
+            return Convert.FromBase64String(dekBase64);
+        }
+
+        public async Task<List<PasswordItem>> GetAccountSavedData(bool includeDeleted = false)
+        {
+            ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
+            int userId = Preferences.Get("CurrentUserId", -1);
+
+            try
+            {
+                byte[] DEK = await GetLocalDekAsync(database);
+
+                var dtos = await database.QueryAsync<ProgramDto>(
+                    "SELECT * FROM Accounts WHERE UserId = ? AND IsDeleted = ?", userId, includeDeleted);
 
                 var result = dtos.Select(dto => new PasswordItem(
-                    dto.Title,
-                    dto.Username,
-                    dto.Password,
-                    dto.Category
-                )).ToList();
-
-                Debug.WriteLine($"inputs in the db {result.Count}");
+                    dto.Title, dto.Username, dto.Password, dto.Category
+                )
+                {
+                    Id = dto.Id,
+                    IsDeleted = dto.IsDeleted
+                }).ToList();
 
                 await Task.Run(() =>
                 {
                     foreach (var item in result)
                     {
-                        item.Password = _tool.Decrypt(item.Password, DEK);
-                        Debug.WriteLine($"Title: {item.Title}, Username: {item.Username}, Category: {item.Category}");
+                        try { item.Password = _tool.Decrypt(item.Password, DEK); }
+                        catch { item.Password = "Error Decrypting"; }
                     }
                 });
 
@@ -84,318 +177,96 @@ namespace Password_manager.Services
         public async Task SaveDataToAccount(PasswordItem Item)
         {
             ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
-            int UserId = Preferences.Get("CurrentUserId", -1);
+            int userId = Preferences.Get("CurrentUserId", -1);
             try
             {
-                var users = await database.QueryAsync<UserAccounts>("SELECT * FROM UserAccounts WHERE Id = ?", UserId);
+                byte[] DEK = await GetLocalDekAsync(database);
+                string encryptedPass = await Task.Run(() => _tool.Encrypt(Item.Password, DEK));
 
-                if (users == null || !users.Any())
-                {
-                    throw new Exception("Current user couldn't be found");
-                }
-
-                string? userPassword = await SecureStorage.Default.GetAsync("CurrentPassword");
-
-                byte[] KEKSalt = Convert.FromBase64String(users[0].KEKSalt);
-                byte[] KEK = await Task.Run(() => _tool.HashString(userPassword, KEKSalt));
-                string DEKInBase64 = await Task.Run(() => _tool.Decrypt(users[0].EncryptedDEK, KEK));
-                byte[] DEK = Convert.FromBase64String(DEKInBase64);
-                string encryptedVaultPasswordInBase64 = await Task.Run(() => _tool.Encrypt(Item.Password, DEK));
-
-                await database.ExecuteAsync("INSERT INTO Accounts (UserId, Title, Username, Password, Category) VALUES (?, ?, ?, ?, ?);",
-                    UserId, Item.Title, Item.Username, encryptedVaultPasswordInBase64, Item.Category ?? "General");
-
+                await database.ExecuteAsync(
+                    "INSERT INTO Accounts (UserId, Title, Username, Password, Category, IsDeleted) VALUES (?, ?, ?, ?, ?, ?);",
+                    userId, Item.Title, Item.Username, encryptedPass, Item.Category ?? "General", false);
             }
             catch (Exception e)
             {
-                Debug.WriteLine("Failed to insert data into database: " + e);
+                Debug.WriteLine("Failed to insert data: " + e);
             }
         }
+
         public async Task UpdateDataInAccount(PasswordItem oldItem, PasswordItem newItem)
         {
             ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
-            int UserId = Preferences.Get("CurrentUserId", -1);
+            int userId = Preferences.Get("CurrentUserId", -1);
             try
             {
-                var users = await database.QueryAsync<UserAccounts>("SELECT * FROM UserAccounts WHERE Id = ?", UserId);
+                byte[] DEK = await GetLocalDekAsync(database);
+                string encryptedPass = await Task.Run(() => _tool.Encrypt(newItem.Password, DEK));
 
-                if (users == null || !users.Any())
+                if (oldItem.Id > 0)
                 {
-                    throw new Exception("Current user couldn't be found");
+                    await database.ExecuteAsync(
+                        "UPDATE Accounts SET Title = ?, Username = ?, Password = ?, Category = ? WHERE Id = ?",
+                        newItem.Title, newItem.Username, encryptedPass, newItem.Category ?? "General", oldItem.Id);
                 }
-
-                string? userPassword = await SecureStorage.Default.GetAsync("CurrentPassword");
-
-                byte[] KEKSalt = Convert.FromBase64String(users[0].KEKSalt);
-                byte[] KEK = await Task.Run(() => _tool.HashString(userPassword, KEKSalt));
-                string DEKInBase64 = await Task.Run(() => _tool.Decrypt(users[0].EncryptedDEK, KEK));
-                byte[] DEK = Convert.FromBase64String(DEKInBase64);
-
-                string encryptedVaultPasswordInBase64 = await Task.Run(() => _tool.Encrypt(newItem.Password, DEK));
-
-                await database.ExecuteAsync(
-                    "UPDATE Accounts SET Title = ?, Username = ?, Password = ?, Category = ? WHERE UserId = ? AND Title = ? AND Username = ?",
-                    newItem.Title,
-                    newItem.Username,
-                    encryptedVaultPasswordInBase64,
-                    newItem.Category ?? "General",
-                    UserId,
-                    oldItem.Title,
-                    oldItem.Username
-                );
-
+                else
+                {
+                    await database.ExecuteAsync(
+                        "UPDATE Accounts SET Title = ?, Username = ?, Password = ?, Category = ? WHERE UserId = ? AND Title = ? AND Username = ?",
+                        newItem.Title, newItem.Username, encryptedPass, newItem.Category ?? "General", userId, oldItem.Title, oldItem.Username);
+                }
             }
             catch (Exception e)
             {
-                Debug.WriteLine("Failed to update data in database: " + e);
+                Debug.WriteLine("Failed to update: " + e);
                 throw;
-            }
-        }
-        public async Task<List<string>> GetUserCategories()
-        {
-            ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
-            int UserId = Preferences.Get("CurrentUserId", -1);
-
-            try
-            {
-                var categories = await database.QueryAsync<ProgramDto>(
-                    "SELECT DISTINCT Category FROM Accounts WHERE UserId = ? ORDER BY Category",
-                    UserId
-                );
-
-                var result = categories.Select(c => c.Category ?? "General").ToList();
-
-                if (!result.Contains("General"))
-                {
-                    result.Insert(0, "General");
-                }
-
-                Debug.WriteLine($"Found categories: {string.Join(", ", result)}");
-                return result;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("Failed to fetch categories: " + ex);
-                return new List<string> { "General" };
-            }
-        }
-
-        public async Task<List<PasswordItem>> GetPasswordsByCategory(string category)
-        {
-            ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
-            int UserId = Preferences.Get("CurrentUserId", -1);
-
-            try
-            {
-                var users = await database.QueryAsync<UserAccounts>("SELECT * FROM UserAccounts WHERE Id = ?", UserId);
-
-                if (users == null || !users.Any())
-                {
-                    throw new Exception("Current user couldn't be found");
-                }
-
-                string? userPassword = await SecureStorage.Default.GetAsync("CurrentPassword");
-
-                byte[] KEKSalt = Convert.FromBase64String(users[0].KEKSalt);
-                byte[] KEK = await Task.Run(() => _tool.HashString(userPassword, KEKSalt));
-                string DEKInBase64 = await Task.Run(() => _tool.Decrypt(users[0].EncryptedDEK, KEK));
-                byte[] DEK = Convert.FromBase64String(DEKInBase64);
-
-                var dtos = await database.QueryAsync<ProgramDto>(
-                    "SELECT * FROM Accounts WHERE UserId = ? AND Category = ?",
-                    UserId, category
-                );
-
-                var result = dtos.Select(dto => new PasswordItem(
-                    dto.Title,
-                    dto.Username,
-                    dto.Password,
-                    dto.Category ?? "General"
-                )).ToList();
-
-                await Task.Run(() =>
-                {
-                    foreach (var item in result)
-                    {
-                        item.Password = _tool.Decrypt(item.Password, DEK);
-                    }
-                });
-
-                Debug.WriteLine($"Found {result.Count} passwords in category '{category}'");
-                return result;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Failed to fetch data for category '{category}': " + ex);
-                return new List<PasswordItem>();
             }
         }
 
         public async Task DeleteDataFromAccount(PasswordItem Item)
         {
             ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
-            long UserId = Preferences.Get("CurrentUserId", -1);
             try
             {
-                if (UserId == -1)
+                if (Item.IsDeleted)
                 {
-                    throw new Exception("Current user hasnt been found");
+                    await database.ExecuteAsync("DELETE FROM Accounts WHERE Id = ?", Item.Id);
                 }
-                await database.ExecuteAsync("DELETE FROM Accounts WHERE Title = ? AND UserId = ?",
-                    Item.Title, UserId);
+                else
+                {
+                    await database.ExecuteAsync("UPDATE Accounts SET IsDeleted = 1, DeletedAt = ? WHERE Id = ?",
+                        DateTime.UtcNow, Item.Id);
+                }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Deleting from database failed: " + ex);
-            }
-        }
-        public async Task<bool> CheckUserAccount(string username, string password)
-        {
-            ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
-
-            try
-            {
-                var users = await database.QueryAsync<UserAccounts>("SELECT Username, Password FROM UserAccounts WHERE Username = ?", username);
-
-                if (users == null || !users.Any())
-                {
-                    return false;
-                }
-
-                foreach (var user in users)
-                {
-                    if (user.Username == username && _tool.VerifyPassword(password, user.Password))
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("Failed to query user account information" + ex);
-                return false;
+                Debug.WriteLine("Delete failed: " + ex);
             }
         }
 
-        public async Task RegisterNewUserAccount(string username, string password)
-        {
-            ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
-
-            // Generates temporary Key Encryption Key
-            byte[] KEKSalt = _tool.GenerateKeys(16);
-            byte[] tempKEK = _tool.HashString(password, KEKSalt);
-
-            // Generates permanent Data Encryption Key
-            byte[] DEK = _tool.GenerateKeys(32);
-            string DEKInBase64 = Convert.ToBase64String(DEK);
-
-            string encryptedDEKInBase64 = _tool.Encrypt(DEKInBase64, tempKEK);
-
-            // Password hashing for storage
-            string hashedPassword = _tool.HashString(password);
-
-            string userIdentifier = Convert.ToBase64String(_tool.GenerateKeys(32));
-            try
-            {
-                await database.ExecuteAsync("INSERT INTO UserAccounts (Username, Password, KEKSalt, EncryptedDek, UserIdentifier) VALUES (?, ?, ?, ?, ?)",
-                    username, hashedPassword, Convert.ToBase64String(KEKSalt), encryptedDEKInBase64, userIdentifier);
-
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("Failed to register new user: " + ex);
-            }
-        }
-
-        public async Task<long> GetUserAccountId(string username)
+        public async Task RestorePassword(PasswordItem Item)
         {
             ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
             try
             {
-                var users = await database.QueryAsync<UserAccounts>("SELECT Id FROM UserAccounts WHERE Username = ?", username);
-
-                if (users == null || !users.Any())
-                {
-                    throw new InvalidOperationException("The specified user account was not found.");
-                }
-
-                return users[0].Id;
+                await database.ExecuteAsync("UPDATE Accounts SET IsDeleted = 0, DeletedAt = NULL WHERE Id = ?", Item.Id);
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Failed to fetch user account data: " + ex);
-                throw;
+                Debug.WriteLine("Restore failed: " + ex);
             }
         }
 
-        // Section for interacting with data related to notes
-
-        public async Task<bool> CreateNote(string content)
+        public async Task<List<NoteItem>> GetNotesByUser(bool includeDeleted = false)
         {
             ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
-
             long userId = Preferences.Get("CurrentUserId", -1);
+
             try
             {
-                byte[] DEK = await _restServiceHelper.RetrieveDEK();
-                if(DEK == null)
-                {
-                    throw new InvalidOperationException("DEK is null");
-                }
+                byte[] DEK = await GetLocalDekAsync(database);
 
-                string encryptedContent = await Task.Run(() => _tool.Encrypt(content, DEK));
-
-                await database.ExecuteAsync("INSERT INTO Notes (UserId, Content, CreatedAt, LastUpdatedAt) VALUES (?, ?, ?, ?)", userId, encryptedContent, DateTime.UtcNow, DateTime.UtcNow);
-
-                _logger.LogInformation("New Note has been succesfully created");
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Could not create a new note: {ex}", ex);
-                return false;
-            }
-        }
-
-        public async Task DeleteNote(long Id)
-        {
-            ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
-
-            long userId = Preferences.Get("CurrentUserId", -1);
-            try
-            {
-                byte[] DEK = await _restServiceHelper.RetrieveDEK();
-                if (DEK == null)
-                {
-                    throw new InvalidOperationException("DEK is null");
-                }
-                await database.ExecuteAsync("DELETE FROM Notes WHERE Id = ? AND UserId = ?", Id, userId);
-
-                _logger.LogInformation("Note has been succesfully deleted");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Could not delete note: {ex}", ex);
-            }
-        }
-
-        public async Task<List<NoteItem>> GetNotesByUser()
-        {
-            ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
-
-            long userId = Preferences.Get("CurrentUserId", -1);
-            try
-            {
-                byte[] DEK = await _restServiceHelper.RetrieveDEK();
-                if (DEK == null)
-                {
-                    throw new InvalidOperationException("DEK is null");
-                }
-
-                var notes = await database.QueryAsync<Notes>("SELECT * FROM Notes WHERE UserId = ?", userId);
+                var notes = await database.QueryAsync<Notes>(
+                    "SELECT * FROM Notes WHERE UserId = ? AND IsDeleted = ?", userId, includeDeleted);
 
                 var noteItems = new List<NoteItem>();
 
@@ -403,71 +274,142 @@ namespace Password_manager.Services
                 {
                     foreach (var note in notes)
                     {
-                        note.Content = _tool.Decrypt(note.Content, DEK);
-
-                        var item = new NoteItem
+                        try
                         {
-                            Id = note.Id,
-                            UserId = note.UserId,
-                            Content = note.Content,
-                            CreatedAt = note.CreatedAt,
-                            LastUpdatedAt = note.LastUpdatedAt,
-                        };
-
-                        noteItems.Add(item);
+                            string clearContent = _tool.Decrypt(note.Content, DEK);
+                            noteItems.Add(new NoteItem
+                            {
+                                Id = note.Id,
+                                UserId = note.UserId,
+                                Content = clearContent,
+                                CreatedAt = note.CreatedAt,
+                                LastUpdatedAt = note.LastUpdatedAt,
+                                IsDeleted = note.IsDeleted
+                            });
+                        }
+                        catch { /* Ignore decrypt errors on notes */ }
                     }
                 });
-
-                _logger.LogInformation("Notes have been succesfully retrieved");
                 return noteItems;
             }
             catch (Exception ex)
             {
                 _logger.LogError("Could not retrieve notes: {ex}", ex);
-                return [];
+                return new List<NoteItem>();
+            }
+        }
+
+        public async Task<bool> CreateNote(string content)
+        {
+            ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
+            int userId = Preferences.Get("CurrentUserId", -1);
+            try
+            {
+                byte[] DEK = await GetLocalDekAsync(database);
+                string encryptedContent = _tool.Encrypt(content, DEK);
+
+                var note = new Notes
+                {
+                    UserId = userId,
+                    Content = encryptedContent,
+                    CreatedAt = DateTime.UtcNow,
+                    LastUpdatedAt = DateTime.UtcNow,
+                    IsDeleted = false
+                };
+
+                await database.InsertAsync(note);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Create Note Failed: {ex}");
+                return false;
             }
         }
 
         public async Task<bool> UpdateNote(long id, string content)
         {
             ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
-
-            long userId = Preferences.Get("CurrentUserId", -1);
             try
             {
-                byte[] DEK = await _restServiceHelper.RetrieveDEK();
-                if (DEK == null)
-                {
-                    throw new InvalidOperationException("DEK is null");
-                }
-                var currentNotes = await database.QueryAsync<Notes>("SELECT * FROM Notes WHERE Id = ? AND UserId = ?", id, userId);
+                byte[] DEK = await GetLocalDekAsync(database);
+                string encryptedContent = _tool.Encrypt(content, DEK);
 
-                if(currentNotes == null || !currentNotes.Any())
-                {
-                    throw new Exception("Note doesn't exist");
-                }
-
-                string storedContent = await Task.Run(() => _tool.Decrypt(currentNotes[0].Content, DEK));
-
-                if(storedContent == content)
-                {
-                    await database.ExecuteAsync("UPDATE Notes SET LastUpdatedAt = ? WHERE Id = ? AND UserId = ?", DateTime.UtcNow, id, userId);
-                }
-                else if(storedContent != content)
-                {
-                    string encryptedNewContent = await Task.Run(() => _tool.Encrypt(content, DEK));
-                    await database.ExecuteAsync("UPDATE Notes SET Content = ?, LastUpdatedAt = ? WHERE Id = ? AND UserId = ?", encryptedNewContent, DateTime.UtcNow, id, userId);
-                }
-
-                _logger.LogInformation("Note has been succesfully updated");
+                await database.ExecuteAsync("UPDATE Notes SET Content = ?, LastUpdatedAt = ? WHERE Id = ?",
+                    encryptedContent, DateTime.UtcNow, id);
                 return true;
-                
+            }
+            catch { return false; }
+        }
+
+        public async Task DeleteNote(long Id, bool isAlreadyDeleted)
+        {
+            ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
+            try
+            {
+                if (isAlreadyDeleted)
+                {
+                    await database.ExecuteAsync("DELETE FROM Notes WHERE Id = ?", Id);
+                }
+                else
+                {
+                    await database.ExecuteAsync("UPDATE Notes SET IsDeleted = 1, DeletedAt = ? WHERE Id = ?",
+                        DateTime.UtcNow, Id);
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError("Could not update note: {ex}", ex);
-                return false;
+                _logger.LogError("Could not delete note: {ex}", ex);
             }
+        }
+
+        public async Task RestoreNote(long Id)
+        {
+            ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
+            try
+            {
+                await database.ExecuteAsync("UPDATE Notes SET IsDeleted = 0, DeletedAt = NULL WHERE Id = ?", Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Could not restore note: {ex}", ex);
+            }
+        }
+
+        // ---------------------------------------------------------
+        // 5. UTILITIES
+        // ---------------------------------------------------------
+
+        public async Task CleanupTrash()
+        {
+            ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
+            try
+            {
+                DateTime cutoff = DateTime.UtcNow.AddDays(-5);
+
+                await database.ExecuteAsync("DELETE FROM Accounts WHERE IsDeleted = 1 AND DeletedAt < ?", cutoff);
+                await database.ExecuteAsync("DELETE FROM Notes WHERE IsDeleted = 1 AND DeletedAt < ?", cutoff);
+
+                Debug.WriteLine("Trash Cleanup Completed.");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Trash cleanup failed: " + ex);
+            }
+        }
+
+        public async Task<List<string>> GetUserCategories()
+        {
+            ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
+            int userId = Preferences.Get("CurrentUserId", -1);
+
+            var categories = await database.QueryAsync<ProgramDto>(
+                 "SELECT DISTINCT Category FROM Accounts WHERE UserId = ? AND IsDeleted = 0 ORDER BY Category", userId);
+
+            var result = categories.Select(c => c.Category ?? "General").ToList();
+            if (!result.Contains("General")) result.Insert(0, "General");
+
+            return result;
         }
     }
 }

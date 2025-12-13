@@ -7,20 +7,25 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
 
-        <Button Command="{Binding AddNewNoteCommand}"
-            Text="+"
-            WidthRequest="40"
-            HeightRequest="40"
-            BackgroundColor="Purple"
-            TextColor="White"
-            CornerRadius="5"
-            ZIndex="100"
-            HorizontalOptions="Start"
-            VerticalOptions="Start"
-            Margin="10"/>
+        <Button Grid.Row="0"
+                x:Name="AddNoteBtn"
+                Command="{Binding AddNewNoteCommand}"
+                Text="+"
+                WidthRequest="40"
+                HeightRequest="40"
+                BackgroundColor="Purple"
+                TextColor="White"
+                CornerRadius="5"
+                HorizontalOptions="Start"
+                Margin="10"/>
 
-        <CollectionView Grid.Column="0"
+        <CollectionView Grid.Row="1"
                         ItemsSource="{Binding NoteList}"
                         SelectedItem="{Binding SelectedNote}"
                         SelectionMode="Single"
@@ -28,8 +33,7 @@
 
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Grid HeightRequest="80" 
-                          Padding="16,0">
+                    <Grid HeightRequest="80" Padding="16,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
@@ -39,8 +43,7 @@
                                Text="{Binding ContentPreview}"
                                FontSize="16"
                                TextColor="{AppThemeBinding Light=#000000, Dark=#FFFFFF}"
-                               VerticalOptions="Center"
-                               Margin="0"> 
+                               VerticalOptions="Center">
                             <Label.GestureRecognizers>
                                 <TapGestureRecognizer
                                     Command="{Binding Source={x:Reference NoteVault}, Path=OpenNoteEditorCommand}"
@@ -48,30 +51,49 @@
                             </Label.GestureRecognizers>
                         </Label>
 
-                        <Button Grid.Column="1"
-                                Text="•••"
-                                BackgroundColor="Transparent"
-                                TextColor="{AppThemeBinding Light=#8E8E93, Dark=#8E8E93}"
-                                WidthRequest="40"
-                                HeightRequest="40"
-                                BorderWidth="0"
-                                FontSize="12">
-                            <FlyoutBase.ContextFlyout>
-                                <MenuFlyout>
-                                    <MenuFlyoutItem 
-                                        Text="Delete"
-                                        Command="{Binding Source={x:Reference NoteVault}, Path=DeleteNoteCommand}"
-                                        CommandParameter="{Binding}"/>
-                                </MenuFlyout>
-                            </FlyoutBase.ContextFlyout>
-                        </Button>
+                        <HorizontalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center">
+                            <Button Text="Restore"
+                                    IsVisible="{Binding IsDeleted}"
+                                    Command="{Binding Source={x:Reference NoteVault}, Path=RestoreNoteCommand}"
+                                    CommandParameter="{Binding}"
+                                    BackgroundColor="{AppThemeBinding Light=#E5E5EA, Dark=#3A3A3C}"
+                                    TextColor="{AppThemeBinding Light=#007AFF, Dark=#0A84FF}"
+                                    FontSize="12"
+                                    HeightRequest="30"
+                                    Padding="10,0"
+                                    CornerRadius="6"
+                                    BorderWidth="0"/>
+
+                            <Button Text="•••"
+                                    BackgroundColor="Transparent"
+                                    TextColor="{AppThemeBinding Light=#8E8E93, Dark=#8E8E93}"
+                                    WidthRequest="40"
+                                    HeightRequest="40"
+                                    FontSize="12">
+                                <FlyoutBase.ContextFlyout>
+                                    <MenuFlyout>
+                                        <MenuFlyoutItem 
+                                            Text="{Binding DeleteActionText}"
+                                            Command="{Binding Source={x:Reference NoteVault}, Path=DeleteNoteCommand}"
+                                            CommandParameter="{Binding}"/>
+                                    </MenuFlyout>
+                                </FlyoutBase.ContextFlyout>
+                            </Button>
+                        </HorizontalStackLayout>
                     </Grid>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
-
-            <CollectionView.ItemsLayout>
-                <LinearItemsLayout Orientation="Vertical"/>
-            </CollectionView.ItemsLayout>
         </CollectionView>
+
+        <Button Grid.Row="2"
+                x:Name="TrashToggleBtn"
+                Text="Show Trash"
+                Clicked="OnToggleTrash"
+                BackgroundColor="Transparent"
+                TextColor="{AppThemeBinding Light=#8E8E93, Dark=#8E8E93}"
+                Margin="16"
+                HeightRequest="40"
+                BorderWidth="1"
+                BorderColor="{AppThemeBinding Light=#C6C6C8, Dark=#636366}"/>
     </Grid>
 </ContentView>

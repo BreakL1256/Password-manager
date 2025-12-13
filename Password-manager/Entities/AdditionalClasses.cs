@@ -18,11 +18,18 @@ namespace Password_manager.Entities
             this.Password = Password;
             this.Category = Category ?? "General";
         }
+
+        public long Id { get; set; }
         public string Title { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
         public string Category { get; set; }
+
+        public bool IsDeleted { get; set; }
+
+        public string DeleteActionText => IsDeleted ? "Delete Permanently" : "Delete";
     }
+
     public class NoteItem
     {
         public long Id { get; set; }
@@ -31,5 +38,8 @@ namespace Password_manager.Entities
         public DateTime CreatedAt { get; set; }
         public DateTime LastUpdatedAt { get; set; }
         public string? ContentPreview => Content?.Length > 80 ? Content.Substring(0, 80) + "..." : Content;
+
+        public bool IsDeleted { get; set; }
+        public string DeleteActionText => IsDeleted ? "Delete Permanently" : "Delete";
     }
 }

@@ -1,141 +1,137 @@
 ﻿using System;
 using System.Buffers.Binary;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 using Konscious.Security.Cryptography;
-using Microsoft.Extensions.Logging;
-using SQLite;
-using Password_manager.Shared;
 
 namespace Password_manager.Entities
 {
     class EncryptionAndHashingMethods
     {
-        private const int SaltSize = 16; 
-        private const int HashSize = 32; 
-        private const int DegreeOfParallelism = 8; 
-        private const int Iterations = 4; 
-        private const int MemorySize = 1024 * 1024;
+        private const int SaltSize = 16;
+        private const int HashSize = 32;
+        private const int DegreeOfParallelism = 4;
+        private const int Iterations = 2;
+        private const int MemorySize = 65536;
 
         public string HashString(string password)
         {
-            // Generate random salt
+            // 1. Generate random salt
             byte[] salt = new byte[SaltSize];
             using (var rng = RandomNumberGenerator.Create())
             {
                 rng.GetBytes(salt);
             }
 
+            // 2. Hash the password using that salt
             byte[] hash = HashString(password, salt);
-            
-            // Store salt with password and convert to base64
+
+            // 3. Combine Salt + Hash for storage
             var combinedBytes = new byte[salt.Length + hash.Length];
             Array.Copy(salt, 0, combinedBytes, 0, salt.Length);
             Array.Copy(hash, 0, combinedBytes, salt.Length, hash.Length);
 
+            // 4. Return as Base64
             return Convert.ToBase64String(combinedBytes);
         }
-
-        // Used for generating salt and DEK
         public byte[] GenerateKeys(int keySize)
         {
-            byte[] salt = new byte[keySize];
+            byte[] key = new byte[keySize];
             using (var rng = RandomNumberGenerator.Create())
             {
-                rng.GetBytes(salt);
+                rng.GetBytes(key);
             }
-
-            return salt;
+            return key;
         }
-
         public byte[] HashString(string password, byte[] salt)
         {
-            var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password))
+            using (var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password)))
             {
-                Salt = salt,
-                DegreeOfParallelism = DegreeOfParallelism,
-                Iterations = Iterations,
-                MemorySize = MemorySize
-            };
+                argon2.Salt = salt;
+                argon2.DegreeOfParallelism = DegreeOfParallelism;
+                argon2.Iterations = Iterations;
+                argon2.MemorySize = MemorySize;
 
-            return argon2.GetBytes(HashSize);
+                return argon2.GetBytes(HashSize);
+            }
         }
 
         public bool VerifyPassword(string password, string hashedPassword)
-        { 
+        {
             byte[] combinedBytes = Convert.FromBase64String(hashedPassword);
 
-            // Extract salt and hash
             byte[] salt = new byte[SaltSize];
-            byte[] hash = new byte[HashSize];
+            byte[] existingHash = new byte[HashSize];
+
             Array.Copy(combinedBytes, 0, salt, 0, SaltSize);
-            Array.Copy(combinedBytes, SaltSize, hash, 0, HashSize);
+            Array.Copy(combinedBytes, SaltSize, existingHash, 0, HashSize);
 
             byte[] newHash = HashString(password, salt);
 
-            return CryptographicOperations.FixedTimeEquals(hash, newHash);
+            return CryptographicOperations.FixedTimeEquals(existingHash, newHash);
         }
 
         public string Encrypt(string plain, byte[] _key)
         {
-            // Get bytes of plaintext string
             byte[] plainBytes = Encoding.UTF8.GetBytes(plain);
 
-            // Get parameter sizes
             int nonceSize = AesGcm.NonceByteSizes.MaxSize;
-            int tagSize = AesGcm.TagByteSizes.MaxSize;
+            int tagSize = AesGcm.TagByteSizes.MaxSize; 
             int cipherSize = plainBytes.Length;
 
-            // We write everything into one big array for easier encoding
+
             int encryptedDataLength = 4 + nonceSize + 4 + tagSize + cipherSize;
             Span<byte> encryptedData = encryptedDataLength < 1024
                                      ? stackalloc byte[encryptedDataLength]
                                      : new byte[encryptedDataLength].AsSpan();
 
-            // Copy parameters
+            // 1. Write Header Info
             BinaryPrimitives.WriteInt32LittleEndian(encryptedData.Slice(0, 4), nonceSize);
-            BinaryPrimitives.WriteInt32LittleEndian(encryptedData.Slice(4 + nonceSize, 4), tagSize);
+
+            // 2. Define Slices
             var nonce = encryptedData.Slice(4, nonceSize);
+            BinaryPrimitives.WriteInt32LittleEndian(encryptedData.Slice(4 + nonceSize, 4), tagSize);
             var tag = encryptedData.Slice(4 + nonceSize + 4, tagSize);
             var cipherBytes = encryptedData.Slice(4 + nonceSize + 4 + tagSize, cipherSize);
 
-            // Generate secure nonce
+            // 3. Generate Nonce & Encrypt
             RandomNumberGenerator.Fill(nonce);
 
-            // Encrypt
-            using var aes = new AesGcm(_key);
-            aes.Encrypt(nonce, plainBytes.AsSpan(), cipherBytes, tag);
+            using (var aes = new AesGcm(_key))
+            {
+                aes.Encrypt(nonce, plainBytes.AsSpan(), cipherBytes, tag);
+            }
 
-            // Encode for transmission
             return Convert.ToBase64String(encryptedData);
         }
 
         public string Decrypt(string cipher, byte[] _key)
         {
-            // Decode
             Span<byte> encryptedData = Convert.FromBase64String(cipher).AsSpan();
 
-            // Extract parameter sizes
+            // 1. Read Header Info
             int nonceSize = BinaryPrimitives.ReadInt32LittleEndian(encryptedData.Slice(0, 4));
+
+            // 2. Read Tag Length (located after the Nonce)
             int tagSize = BinaryPrimitives.ReadInt32LittleEndian(encryptedData.Slice(4 + nonceSize, 4));
+
             int cipherSize = encryptedData.Length - 4 - nonceSize - 4 - tagSize;
 
-            // Extract parameters
+            // 3. Extract Slices
             var nonce = encryptedData.Slice(4, nonceSize);
             var tag = encryptedData.Slice(4 + nonceSize + 4, tagSize);
             var cipherBytes = encryptedData.Slice(4 + nonceSize + 4 + tagSize, cipherSize);
 
-            // Decrypt
+            // 4. Decrypt
             Span<byte> plainBytes = cipherSize < 1024
                                   ? stackalloc byte[cipherSize]
                                   : new byte[cipherSize];
-            using var aes = new AesGcm(_key);
-            aes.Decrypt(nonce, cipherBytes, tag, plainBytes);
 
-            // Convert plain bytes back into string
+            using (var aes = new AesGcm(_key))
+            {
+                aes.Decrypt(nonce, cipherBytes, tag, plainBytes);
+            }
+
             return Encoding.UTF8.GetString(plainBytes);
         }
     }
