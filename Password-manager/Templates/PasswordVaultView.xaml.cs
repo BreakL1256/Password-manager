@@ -84,12 +84,10 @@ public partial class PasswordVaultView : ContentView, INotifyPropertyChanged
 
     public async Task LoadData()
     {
-        // Load based on trash mode
         var data = await _handler.GetAccountSavedData(_isTrashMode);
         _allPasswords = data ?? new List<PasswordItem>();
         FilterPasswords();
 
-        // Update UI Text/Visibility
         TrashToggleBtn.Text = _isTrashMode ? "Back" : "Trash";
         AddPasswordBtn.IsVisible = !_isTrashMode;
     }

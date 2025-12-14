@@ -29,82 +29,64 @@ namespace Password_manager.Services
 
             Task.Run(CleanupTrash);
         }
-
-
+  
         public async Task RegisterNewUserAccount(string username, string password)
         {
             ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
 
+            // Generates temporary Key Encryption Key
+            byte[] KEKSalt = _tool.GenerateKeys(16);
+            byte[] tempKEK = _tool.HashString(password, KEKSalt);
+
+            // Generates permanent Data Encryption Key
+            byte[] DEK = _tool.GenerateKeys(32);
+            string DEKInBase64 = Convert.ToBase64String(DEK);
+
+            string encryptedDEKInBase64 = _tool.Encrypt(DEKInBase64, tempKEK);
+
+            // Password hashing for storage
+            string hashedPassword = _tool.HashString(password);
+
+            string userIdentifier = Convert.ToBase64String(_tool.GenerateKeys(32));
             try
             {
+                await database.ExecuteAsync("INSERT INTO UserAccounts (Username, Password, KEKSalt, EncryptedDek, UserIdentifier) VALUES (?, ?, ?, ?, ?)",
+                    username, hashedPassword, Convert.ToBase64String(KEKSalt), encryptedDEKInBase64, userIdentifier);
 
-                var existing = await database.Table<UserAccounts>().Where(u => u.Username == username).FirstOrDefaultAsync();
-                if (existing != null)
-                {
-                    Preferences.Set("CurrentUserId", existing.Id);
-                    await SecureStorage.Default.SetAsync("CurrentPassword", password);
-                    return;
-                }
-
-                byte[] kekSalt = _tool.GenerateKeys(16);
-
-                byte[] KEK = _tool.HashString(password, kekSalt);
-
-                byte[] DEK = _tool.GenerateKeys(32);
-
-                string encryptedDEK = _tool.Encrypt(Convert.ToBase64String(DEK), KEK);
-
-                var newUser = new UserAccounts
-                {
-                    Username = username,
-                    KEKSalt = Convert.ToBase64String(kekSalt),
-                    EncryptedDEK = encryptedDEK
-                };
-
-                await database.InsertAsync(newUser);
-
-                var savedUser = await database.Table<UserAccounts>().Where(u => u.Username == username).FirstOrDefaultAsync();
-                if (savedUser != null)
-                {
-                    Preferences.Set("CurrentUserId", savedUser.Id);
-                    await SecureStorage.Default.SetAsync("CurrentPassword", password);
-                    Debug.WriteLine($"✅ Local User Created: {username} (ID: {savedUser.Id})");
-                }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"❌ Register Failed: {ex.Message}");
-                throw;
+                Debug.WriteLine("Failed to register new user: " + ex);
             }
         }
+
 
         public async Task<bool> CheckUserAccount(string username, string password)
         {
             ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
+
             try
             {
-                var user = await database.Table<UserAccounts>().Where(u => u.Username == username).FirstOrDefaultAsync();
-                if (user == null) return false;
+                var users = await database.QueryAsync<UserAccounts>("SELECT Username, Password FROM UserAccounts WHERE Username = ?", username);
 
-                byte[] kekSalt = Convert.FromBase64String(user.KEKSalt);
-                byte[] KEK = _tool.HashString(password, kekSalt);
-
-                try
-                {
-                    string dekStr = _tool.Decrypt(user.EncryptedDEK, KEK);
-
-                    Preferences.Set("CurrentUserId", user.Id);
-                    await SecureStorage.Default.SetAsync("CurrentPassword", password);
-                    return true;
-                }
-                catch
+                if (users == null || !users.Any())
                 {
                     return false;
                 }
+
+                foreach (var user in users)
+                {
+                    if (user.Username == username && _tool.VerifyPassword(password, user.Password))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Login Check Failed: {ex}");
+                Debug.WriteLine("Failed to query user account information" + ex);
                 return false;
             }
         }
@@ -284,10 +266,10 @@ namespace Password_manager.Services
                                 CreatedAt = note.CreatedAt,
                                 LastUpdatedAt = note.LastUpdatedAt,
                                 IsDeleted = note.IsDeleted,
-                                DeletedAt = note.DeletedAt // Populate DeletedAt from DB
+                                DeletedAt = note.DeletedAt 
                             });
                         }
-                        catch { /* Ignore decrypt errors on notes */ }
+                        catch {  }
                     }
                 });
                 return noteItems;
