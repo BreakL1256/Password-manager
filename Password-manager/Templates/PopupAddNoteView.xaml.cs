@@ -25,7 +25,7 @@ public partial class PopupAddNoteView : Popup
 
 	public async Task SaveNewNoteToDatabase()
 	{
-		bool isSuccess = await _handler.CreateNote(contentField.Text);
+		bool isSuccess = await _handler.CreateNote(contentField.HtmlText);
 		if (isSuccess)
 		{
 			Close("Note_added_succesfully");

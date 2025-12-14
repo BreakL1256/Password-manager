@@ -31,7 +31,8 @@ public partial class PopupEditNoteView : Popup
 
 	public async Task SaveNoteChangesToDatabase()
 	{
-		bool isSuccess = await _handler.UpdateNote( Note.Id, contentField.Text);
+
+		bool isSuccess = await _handler.UpdateNote(Note.Id, contentField.HtmlText);
 		if (isSuccess)
 		{
 			Close("Note_saved_succesfully");
