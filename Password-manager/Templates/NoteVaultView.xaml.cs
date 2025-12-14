@@ -45,7 +45,6 @@ public partial class NoteVaultView : ContentView, INotifyPropertyChanged
         NoteList.Clear();
         foreach (var note in notes) NoteList.Add(note);
 
-        // Update UI
         TrashToggleBtn.Text = _isTrashMode ? "Back" : "Trash";
         AddNoteBtn.IsVisible = !_isTrashMode;
     }

@@ -26,7 +26,6 @@ namespace Password_manager.Entities
         public string Category { get; set; }
 
         public bool IsDeleted { get; set; }
-        // Added property to track deletion time
         public DateTime? DeletedAt { get; set; }
 
         public string DeleteActionText => IsDeleted ? "Delete Permanently" : "Delete";
@@ -56,7 +55,23 @@ namespace Password_manager.Entities
         public string Content { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime LastUpdatedAt { get; set; }
-        public string? ContentPreview => Content?.Length > 80 ? Content.Substring(0, 80) + "..." : Content;
+        public string ContentPreview
+        {
+            get
+            {
+                var plainText = System.Text.RegularExpressions.Regex.Replace(
+                    Content ?? "",
+                    "<.*?>",
+                    string.Empty
+                );
+
+                plainText = System.Net.WebUtility.HtmlDecode(plainText);
+
+                return plainText.Length > 80
+                    ? plainText.Substring(0, 80) + "..."
+                    : plainText;
+            }
+        }
 
         public bool IsDeleted { get; set; }
         public DateTime? DeletedAt { get; set; }

@@ -27,27 +27,6 @@ namespace Password_manager_api.Controllers
             _tool = new EncryptionAndHashingMethods();
         }
 
-        // GET: api/AccountsItems
-        //[HttpGet]
-        //public async Task<ActionResult<IEnumerable<AccountsItem>>> GetAccounts()
-        //{
-        //    return await _context.Accounts.ToListAsync();
-        //}
-
-        //// GET: api/AccountsItems/id
-        //[HttpGet("{id}")]
-        //public async Task<ActionResult<AccountsItem>> GetAccountsItem(long id)
-        //{
-        //    var accountsItem = await _context.Accounts.FindAsync(id);
-
-        //    if (accountsItem == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    return accountsItem;
-        //}
-
         // POST: api/AccountsItems/login
         //Logs in user and issues token
         [HttpPost("login")]
@@ -114,27 +93,5 @@ namespace Password_manager_api.Controllers
                 Email = newAccount.Email,
             });
         }
-
-        // DELETE: api/AccountsItems/delete
-        //[HttpDelete("delete")]
-        //public async Task<IActionResult> DeleteAccountsItem(long id)
-        //{
-        //    var accountsItem = await _context.Accounts.FindAsync(id);
-        //    if (accountsItem == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    _context.Accounts.Remove(accountsItem);
-        //    await _context.SaveChangesAsync();
-
-        //    return NoContent();
-        //}
-
-        //[HttpGet("check/{id}")]
-        //public async Task<ActionResult<bool>> AccountsItemExists(long id)
-        //{
-        //    return await _context.Accounts.AnyAsync(e => e.Id == id);
-        //}
     }
 }

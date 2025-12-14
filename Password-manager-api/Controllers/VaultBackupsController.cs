@@ -116,26 +116,5 @@ namespace Password_manager_api.Controllers
             return Ok();
 
         }
-
-        // DELETE: api/VaultBackups/5
-        //[HttpDelete("{id}")]
-        //public async Task<IActionResult> DeleteVaultBackups(long id)
-        //{
-        //    var vaultBackups = await _context.VaultBackups.FindAsync(id);
-        //    if (vaultBackups == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    _context.VaultBackups.Remove(vaultBackups);
-        //    await _context.SaveChangesAsync();
-
-        //    return NoContent();
-        //}
-
-        //public bool VaultBackupsExists(long id)
-        //{
-        //    return _context.VaultBackups.Any(e => e.Id == id);
-        //}
     }
 }

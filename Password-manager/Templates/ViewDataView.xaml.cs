@@ -15,7 +15,7 @@ public partial class ViewDataView : ContentView
         InitializeComponent();
         _currentItem = Item;
 
-        TitleLabel.Text = Item.Title; // Set Title
+        TitleLabel.Text = Item.Title; 
         UsernameField.Text = Item.Username;
         CategoryField.Text = Item.Category;
 
