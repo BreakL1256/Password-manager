@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Password_manager.Templates.EditDataView">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="0" Padding="20">
+            <Label Text="Edit Password" FontSize="20" FontAttributes="Bold" Margin="0,0,0,20" TextColor="{AppThemeBinding Light=#000000, Dark=#FFFFFF}"/>
+
+            <Border BackgroundColor="{AppThemeBinding Light=#DED2C3, Dark=#2C2C2E}" Padding="16" StrokeShape="RoundRectangle 10" Stroke="Transparent" Margin="0,0,0,16">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Title" FontSize="13" TextColor="{AppThemeBinding Light=#8E8E93, Dark=#8E8E93}"/>
+                    <Entry x:Name="TitleField" FontSize="17" BackgroundColor="Transparent" TextColor="{AppThemeBinding Light=#000000, Dark=#FFFFFF}"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border BackgroundColor="{AppThemeBinding Light=#DED2C3, Dark=#2C2C2E}" Padding="16" StrokeShape="RoundRectangle 10" Stroke="Transparent" Margin="0,0,0,16">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Category" FontSize="13" TextColor="{AppThemeBinding Light=#8E8E93, Dark=#8E8E93}"/>
+                    <FlexLayout Wrap="Wrap" JustifyContent="Start" Direction="Row" AlignItems="Start">
+                        <Button x:Name="BtnGeneral" Text="General" Clicked="OnCategoryClicked" HeightRequest="40" Padding="12,0" Margin="0,0,8,8" FontSize="14" CornerRadius="8" BorderWidth="1"/>
+                        <Button x:Name="BtnWork" Text="Work" Clicked="OnCategoryClicked" HeightRequest="40" Padding="12,0" Margin="0,0,8,8" FontSize="14" CornerRadius="8" BorderWidth="1"/>
+                        <Button x:Name="BtnSocial" Text="Social" Clicked="OnCategoryClicked" HeightRequest="40" Padding="12,0" Margin="0,0,8,8" FontSize="14" CornerRadius="8" BorderWidth="1"/>
+                        <Button x:Name="BtnOther" Text="Other" Clicked="OnCategoryClicked" HeightRequest="40" Padding="12,0" Margin="0,0,8,8" FontSize="14" CornerRadius="8" BorderWidth="1"/>
+                    </FlexLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border BackgroundColor="{AppThemeBinding Light=#DED2C3, Dark=#2C2C2E}" Padding="16" StrokeShape="RoundRectangle 10" Stroke="Transparent" Margin="0,0,0,16">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Username" FontSize="13" TextColor="{AppThemeBinding Light=#8E8E93, Dark=#8E8E93}"/>
+                    <Entry x:Name="UsernameField" FontSize="17" BackgroundColor="Transparent" TextColor="{AppThemeBinding Light=#000000, Dark=#FFFFFF}"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border BackgroundColor="{AppThemeBinding Light=#DED2C3, Dark=#2C2C2E}" Padding="16" StrokeShape="RoundRectangle 10" Stroke="Transparent" Margin="0,0,0,24">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Password" FontSize="13" TextColor="{AppThemeBinding Light=#8E8E93, Dark=#8E8E93}"/>
+                    <Entry x:Name="PasswordField" FontSize="17" BackgroundColor="Transparent" TextColor="{AppThemeBinding Light=#000000, Dark=#FFFFFF}"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                <Button Grid.Column="0" Text="Cancel" Clicked="OnCancelClicked" BackgroundColor="{AppThemeBinding Light=#E9E1D7, Dark=#3A3A3C}" TextColor="{AppThemeBinding Light=#50483E, Dark=#0A84FF}" HeightRequest="50" CornerRadius="10" BorderWidth="0" FontSize="16"/>
+                <Button Grid.Column="1" Text="Save" Clicked="OnSaveClicked" BackgroundColor="{AppThemeBinding Light=#50483E, Dark=#0A84FF}" TextColor="#E9E1D7" HeightRequest="50" CornerRadius="10" BorderWidth="0" FontSize="16"/>
+            </Grid>
+
+            <Button Text="Generate New Password" Clicked="OnGeneratePasswordClicked" BackgroundColor="Transparent" TextColor="{AppThemeBinding Light=#50483E, Dark=#0A84FF}" Margin="0,16,0,0"/>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentView>

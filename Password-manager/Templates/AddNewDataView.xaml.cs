@@ -1,6 +1,7 @@
 using System.Text;
 using Password_manager.Entities;
 using Password_manager.Services;
+
 namespace Password_manager.Templates;
 
 public partial class AddNewDataView : ContentView
@@ -18,17 +19,18 @@ public partial class AddNewDataView : ContentView
     public AddNewDataView(RequestHandler handler)
     {
         InitializeComponent();
-
         _handler = handler;
-
         UpdateCategorySelection("General");
     }
 
-    public Func<Task> OnDataAdded { get; set; }
+    public Func<Task>? OnDataAdded { get; set; }
 
     private async void OnNewDataSubmit(object sender, EventArgs e)
     {
-        if (_handler != null && TitleField.Text != "" && UsernameField.Text != "" && PasswordField.Text != "")
+        if (_handler != null &&
+            !string.IsNullOrWhiteSpace(TitleField.Text) &&
+            !string.IsNullOrWhiteSpace(UsernameField.Text) &&
+            !string.IsNullOrWhiteSpace(PasswordField.Text))
         {
             PasswordItem newItem = new PasswordItem(TitleField.Text, UsernameField.Text, PasswordField.Text, _selectedCategory);
             try
@@ -54,16 +56,18 @@ public partial class AddNewDataView : ContentView
 
     private void OnCategoryButtonClicked(object sender, EventArgs e)
     {
-        var button = (Button)sender;
-        UpdateCategorySelection(button.Text);
+        if (sender is Button button)
+        {
+            UpdateCategorySelection(button.Text);
+        }
     }
 
     private void ResetCategoryButtons()
     {
-        var defaultBackground = Colors.Transparent; // Set to transparent
-        var defaultBorder = Application.Current.RequestedTheme == AppTheme.Light ?
+        var defaultBackground = Colors.Transparent;
+        var defaultBorder = Application.Current?.RequestedTheme == AppTheme.Light ?
             Color.FromArgb("#C6C6C8") : Color.FromArgb("#636366");
-        var defaultTextColor = Application.Current.RequestedTheme == AppTheme.Light ?
+        var defaultTextColor = Application.Current?.RequestedTheme == AppTheme.Light ?
             Color.FromArgb("#000000") : Color.FromArgb("#FFFFFF");
 
         GeneralCategoryButton.BackgroundColor = defaultBackground;
@@ -73,6 +77,10 @@ public partial class AddNewDataView : ContentView
         WorkCategoryButton.BackgroundColor = defaultBackground;
         WorkCategoryButton.BorderColor = defaultBorder;
         WorkCategoryButton.TextColor = defaultTextColor;
+
+        SocialCategoryButton.BackgroundColor = defaultBackground;
+        SocialCategoryButton.BorderColor = defaultBorder;
+        SocialCategoryButton.TextColor = defaultTextColor;
 
         OtherCategoryButton.BackgroundColor = defaultBackground;
         OtherCategoryButton.BorderColor = defaultBorder;
@@ -89,22 +97,26 @@ public partial class AddNewDataView : ContentView
         {
             case "General":
                 GeneralCategoryButton.BackgroundColor = Colors.Transparent;
-                GeneralCategoryButton.BorderColor = Color.FromArgb("#007AFF");
+                GeneralCategoryButton.BorderColor = Color.FromArgb("#007AFF"); // Blue
                 GeneralCategoryButton.TextColor = Color.FromArgb("#007AFF");
                 break;
             case "Work":
                 WorkCategoryButton.BackgroundColor = Colors.Transparent;
-                WorkCategoryButton.BorderColor = Color.FromArgb("#FFCC00");
+                WorkCategoryButton.BorderColor = Color.FromArgb("#FF9500"); // Orange
                 WorkCategoryButton.TextColor = Color.FromArgb("#FF9500");
+                break;
+            case "Social":
+                SocialCategoryButton.BackgroundColor = Colors.Transparent;
+                SocialCategoryButton.BorderColor = Color.FromArgb("#AF52DE"); // Purple
+                SocialCategoryButton.TextColor = Color.FromArgb("#AF52DE");
                 break;
             case "Other":
                 OtherCategoryButton.BackgroundColor = Colors.Transparent;
-                OtherCategoryButton.BorderColor = Color.FromArgb("#FF3B30");
+                OtherCategoryButton.BorderColor = Color.FromArgb("#FF3B30"); // Red
                 OtherCategoryButton.TextColor = Color.FromArgb("#FF3B30");
                 break;
         }
     }
-
 
     private string GenerateSafePassword(int length = 20)
     {
@@ -134,14 +146,11 @@ public partial class AddNewDataView : ContentView
     private string ShuffleString(string input)
     {
         var chars = input.ToCharArray();
-
-        // Fisher-Yates shuffle algorithm
         for (int i = chars.Length - 1; i > 0; i--)
         {
             int j = _random.Next(i + 1);
             (chars[i], chars[j]) = (chars[j], chars[i]);
         }
-
         return new string(chars);
     }
 }

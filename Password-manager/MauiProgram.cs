@@ -23,8 +23,10 @@ namespace Password_manager
                 });
 
 #if DEBUG
-    		builder.Logging.AddDebug();
+            builder.Logging.AddDebug();
+
 #endif
+
             builder.Services.AddSingleton<SqliteConnectionFactory>();
             builder.Services.AddSingleton<RequestHandler>();
             builder.Services.AddSingleton<RestServiceHelper>();
@@ -39,6 +41,7 @@ namespace Password_manager
             builder.Services.AddTransient<PopupLoginView>();
             builder.Services.AddTransient<PopupAddNoteView>();
             builder.Services.AddTransient<PopupEditNoteView>();
+
             return builder.Build();
         }
     }

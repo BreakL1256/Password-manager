@@ -10,106 +10,108 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Header Bar -->
         <Grid Grid.Row="0" 
-              BackgroundColor="{AppThemeBinding Light=#FBFBFD, Dark=#1C1C1E}"
-              HeightRequest="60"
-              Padding="20,0">
+              BackgroundColor="{AppThemeBinding Light=#C9B59C, Dark=#1C1C1E}"
+              HeightRequest="60">
 
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+            <Grid Padding="20,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-            <!-- App Title -->
-            <Label Grid.Column="0"
-                   Text="Password manager"
-                   FontSize="22"
-                   FontAttributes="Bold"
-                   VerticalOptions="Center"
-                   TextColor="{AppThemeBinding Light=#000000, Dark=#FFFFFF}"/>
+                <Label Grid.Column="0"
+                       Text="Password manager"
+                       FontSize="22"
+                       FontAttributes="Bold"
+                       VerticalOptions="Center"
+                       TextColor="{AppThemeBinding Light=#000000 , Dark=#FFFFFF}"/>
 
-            <!-- Action Buttons -->
-            <HorizontalStackLayout Grid.Column="1" 
-                                   Spacing="16"
-                                   VerticalOptions="Center">
-                <ContentView>
-                    <ContentView.Triggers>
-                        <DataTrigger TargetType="ContentView"
-                                     Binding="{Binding IsConnectedToCloud}"
-                                     Value="True">
-                            <Setter Property="Content">
-                                <Setter.Value>
-                                    <HorizontalStackLayout>
-                                        <Button Text="Disconnect"
-                                                Command="{Binding DisconnectCommand}"
-                                                BackgroundColor="Transparent"
-                                                TextColor="{AppThemeBinding Light=#007AFF, Dark=#0A84FF}"
-                                                BorderWidth="0"
-                                                HeightRequest="36"
-                                                FontSize="14"/>
-                                        <Button Text="Backup"
-                                                Command="{Binding BackupCommand}"
-                                                BackgroundColor="Transparent"
-                                                TextColor="{AppThemeBinding Light=#007AFF, Dark=#0A84FF}"
-                                                BorderWidth="0"
-                                                HeightRequest="36"
-                                                FontSize="14"/>
-                                        <Button Text="Restore"
-                                                Command="{Binding RestoreCommand}"
-                                                BackgroundColor="Transparent"
-                                                TextColor="{AppThemeBinding Light=#007AFF, Dark=#0A84FF}"
-                                                BorderWidth="0"
-                                                HeightRequest="36"
-                                                FontSize="14"/>
-                                    </HorizontalStackLayout>
-                                </Setter.Value>
-                            </Setter>
-                        </DataTrigger>
-                    </ContentView.Triggers>
-                    <Button Text="Sync" 
-                            Command="{Binding Cloud}"
+                <HorizontalStackLayout Grid.Column="1" 
+                                       Spacing="16"
+                                       VerticalOptions="Center">
+                    <ContentView>
+                        <ContentView.Triggers>
+                            <DataTrigger TargetType="ContentView"
+                                         Binding="{Binding IsConnectedToCloud}"
+                                         Value="True">
+                                <Setter Property="Content">
+                                    <Setter.Value>
+                                        <HorizontalStackLayout>
+                                            <Button Text="Disconnect"
+                                                    Command="{Binding DisconnectCommand}"
+                                                    BackgroundColor="Transparent"
+                                                    TextColor="{AppThemeBinding Light=#007AFF, Dark=#0A84FF}"
+                                                    BorderWidth="0"
+                                                    HeightRequest="36"
+                                                    FontSize="14"/>
+                                            <Button Text="Backup"
+                                                    Command="{Binding BackupCommand}"
+                                                    BackgroundColor="Transparent"
+                                                    TextColor="{AppThemeBinding Light=#007AFF, Dark=#0A84FF}"
+                                                    BorderWidth="0"
+                                                    HeightRequest="36"
+                                                    FontSize="14"/>
+                                            <Button Text="Restore"
+                                                    Command="{Binding RestoreCommand}"
+                                                    BackgroundColor="Transparent"
+                                                    TextColor="{AppThemeBinding Light=#007AFF, Dark=#0A84FF}"
+                                                    BorderWidth="0"
+                                                    HeightRequest="36"
+                                                    FontSize="14"/>
+                                        </HorizontalStackLayout>
+                                    </Setter.Value>
+                                </Setter>
+                            </DataTrigger>
+                        </ContentView.Triggers>
+                        <Button Text="Sync" 
+                                Command="{Binding Cloud}"
+                                BackgroundColor="Transparent"
+                                TextColor="{AppThemeBinding Light=#50483E, Dark=#0A84FF}"
+                                BorderWidth="0"
+                                HeightRequest="36"
+                                FontSize="14"/>
+                    </ContentView>
+
+                    <Button Text="Settings" 
+                            Command="{Binding SettingsCommand}"
                             BackgroundColor="Transparent"
-                            TextColor="{AppThemeBinding Light=#007AFF, Dark=#0A84FF}"
+                            TextColor="{AppThemeBinding Light=#50483E, Dark=#0A84FF}"
                             BorderWidth="0"
                             HeightRequest="36"
                             FontSize="14"/>
-                </ContentView>
 
-                <Button Text="Settings" 
-                        Command="{Binding SettingsCommand}"
-                        BackgroundColor="Transparent"
-                        TextColor="{AppThemeBinding Light=#007AFF, Dark=#0A84FF}"
-                        BorderWidth="0"
-                        HeightRequest="36"
-                        FontSize="14"/>
+                    <Button Text="Logout" 
+                            Command="{Binding LogoutFromAccount}"
+                            BackgroundColor="Transparent"
+                            TextColor="{AppThemeBinding Light=#FF3B30, Dark=#FF453A}"
+                            BorderWidth="0"
+                            HeightRequest="36"
+                            FontSize="14"/>
+                </HorizontalStackLayout>
+            </Grid>
 
-                <Button Text="Logout" 
-                        Command="{Binding LogoutFromAccount}"
-                        BackgroundColor="Transparent"
-                        TextColor="{AppThemeBinding Light=#FF3B30, Dark=#FF453A}"
-                        BorderWidth="0"
-                        HeightRequest="36"
-                        FontSize="14"/>
-            </HorizontalStackLayout>
+            <BoxView VerticalOptions="End"
+                     HeightRequest="1"
+                     Color="Black"
+                     InputTransparent="True"/>
         </Grid>
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="150"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
+
             <CollectionView Grid.Column="0"
                             ItemsSource="{Binding Tabs}"
                             SelectedItem="{Binding SelectedTab}"
                             SelectionMode="Single"
-                            BackgroundColor="{AppThemeBinding Light=#F2F2F7, Dark=#2C2C2E}">
+                            BackgroundColor="{AppThemeBinding Light=#C9B59C, Dark=#2C2C2E}">
 
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <Grid HeightRequest="50" 
-                                Padding="16,0">
-
+                        <Grid HeightRequest="50" Padding="16,0">
                             <Label Text="{Binding Title}"
                                    FontSize="16"
                                    TextColor="{AppThemeBinding Light=#000000, Dark=#FFFFFF}"
@@ -129,7 +131,12 @@
                     <LinearItemsLayout Orientation="Vertical"/>
                 </CollectionView.ItemsLayout>
             </CollectionView>
-            
+
+            <BoxView Grid.Column="0"
+                     HorizontalOptions="End"
+                     WidthRequest="1"
+                     Color="Black"/>
+
             <ContentView x:Name="TabView"
                          BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#000000}"
                          Grid.Column="1"/>
