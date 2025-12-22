@@ -33,8 +33,8 @@ namespace Password_manager_api.Controllers
 
         // Restores vault
         // GET: api/VaultBackups/VaultOwnerId
-        [HttpGet("{VaultOwnerId}")]
-        public async Task<ActionResult<VaultBackups>> GetVaultBackups(string vaultOwnerId)
+        [HttpGet]
+        public async Task<ActionResult<VaultBackups>> GetVaultBackups([FromQuery] string vaultOwnerId)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
@@ -88,8 +88,8 @@ namespace Password_manager_api.Controllers
 
         //Updates already existing vault
         // PUT: api/VaultBackups
-        [HttpPut("{VaultOwnerId}")]
-        public async Task<ActionResult> UpdateVaultBackups([FromBody] VaultBackupDTO vaultBackup,[FromRoute] string vaultOwnerId)
+        [HttpPut]
+        public async Task<ActionResult> UpdateVaultBackups([FromBody] VaultBackupDTO vaultBackup)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
@@ -99,7 +99,7 @@ namespace Password_manager_api.Controllers
                 return BadRequest(new { error = "Couldn't parse user ID"});
             }
 
-            var storedVaultBackup = await _context.VaultBackups.Where(item => item.UserId == userId && item.VaultOwnerId == vaultOwnerId).FirstOrDefaultAsync();
+            var storedVaultBackup = await _context.VaultBackups.Where(item => item.UserId == userId && item.VaultOwnerId == vaultBackup.VaultOwnerId).FirstOrDefaultAsync();
 
             if(storedVaultBackup == null)
             {

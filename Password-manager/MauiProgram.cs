@@ -11,6 +11,9 @@ namespace Password_manager
     {
         public static MauiApp CreateMauiApp()
         {
+
+            Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(Config.SyncfusionKey);
+
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()

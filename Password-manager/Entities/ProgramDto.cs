@@ -43,6 +43,7 @@ namespace Password_manager.Entities
         public string? CloudTokenEncrypted { get; set; }
         public DateTime? CloudTokenExpiry { get; set; }
         public DateTime? LastCloudSync { get; set; }
+        public bool? IsFirstBackup { get; set; }
     }
 
     public class Notes

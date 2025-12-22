@@ -116,9 +116,7 @@ namespace Password_manager.Services
                     string token = res.GetProperty("token").GetString();
                     bool isFirstBackup = res.GetProperty("isFirstbackup").GetBoolean();
 
-                    Preferences.Set("IsFirstBackup", isFirstBackup);
-
-                    await _restServiceHelper.SaveCloudData(cloudId, email, token, loginCredentials.Password);
+                    await _restServiceHelper.SaveCloudData(cloudId, email, token, loginCredentials.Password, isFirstBackup);
 
                     await SetAuthenticationToken();
 
@@ -144,6 +142,7 @@ namespace Password_manager.Services
             int userId = Preferences.Get("CurrentUserId", -1);
 
             await SetAuthenticationToken();
+
             try
             {
                 string? userIdentifier = await _restServiceHelper.GetUserIdentifier();
@@ -153,11 +152,20 @@ namespace Password_manager.Services
                     throw new Exception("User identifier could not be found");
                 }
 
-                Uri uri = new Uri(string.Format(Constants.RestUrl, $"VaultBackups/{userIdentifier}"));
+                string encodedUserIdentifier = Uri.EscapeDataString(userIdentifier);
+
+                Uri uri = new Uri(string.Format(Constants.RestUrl, $"VaultBackups?vaultOwnerId={encodedUserIdentifier}"));
                 
                 HttpResponseMessage response = await _client.GetAsync(uri);
 
                 var body = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode || string.IsNullOrWhiteSpace(body))
+                {
+                    _logger.LogWarning("Restore failed: {StatusCode} - {Body}", response.StatusCode, body);
+                    return false;
+                }
+
                 var res = JsonSerializer.Deserialize<JsonElement>(body, _serializerOptions);
                 if (response.IsSuccessStatusCode)
                 {
@@ -181,6 +189,11 @@ namespace Password_manager.Services
                     byte[] DEK = Convert.FromBase64String(DEKInBase64);
 
                     string blob = await Task.Run(() => _tool.Decrypt(encryptedVaultBlob, DEK));
+
+                    if (string.IsNullOrWhiteSpace(blob))
+                    {
+                        throw new Exception("Decrypted vault blob is empty or invalid");
+                    }
 
                     var blobObject = JsonSerializer.Deserialize<List<ProgramDto>>(blob);
 
@@ -251,10 +264,18 @@ namespace Password_manager.Services
             ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
 
             int userId = Preferences.Get("CurrentUserId", -1);
-            bool isFirstBackup = Preferences.Get("IsFirstBackup", false);
+
+            bool? isFirstBackup = await _restServiceHelper.RetrieveBackupPriority();
+
+            if (isFirstBackup == null)
+            {
+                _logger.LogError("Backup not succesfull: FirstBackup value is null");
+                return false;
+            }
 
             await SetAuthenticationToken();
-            if (isFirstBackup)
+
+            if (isFirstBackup == true)
             {
                 Uri uri = new Uri(string.Format(Constants.RestUrl, "VaultBackups"));
                 try
@@ -324,7 +345,7 @@ namespace Password_manager.Services
                         throw new Exception("User identifier could not be found");
                     }
 
-                    Uri uri = new Uri(string.Format(Constants.RestUrl, $"VaultBackups/{userIdentifier}"));
+                    Uri uri = new Uri(string.Format(Constants.RestUrl, "VaultBackups"));
 
                     var passwordVault = await _handler.GetAccountSavedData();
 
@@ -349,6 +370,7 @@ namespace Password_manager.Services
                     VaultBackupDTO transferObject = new VaultBackupDTO
                     {
                         EncryptedVaultBlob = encriptedBlob,
+                        VaultOwnerId = userIdentifier,
                     };
 
                     string json = JsonSerializer.Serialize(transferObject, _serializerOptions);
