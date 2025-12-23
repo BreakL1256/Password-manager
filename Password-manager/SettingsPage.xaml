@@ -29,7 +29,6 @@
                                 SelectedIndexChanged="OnThemeChanged">
                             <Picker.Items>
                                 <x:String>System Default</x:String>
-                                <x:String>Light Mode</x:String>
                                 <x:String>Dark Mode</x:String>
                             </Picker.Items>
                         </Picker>
