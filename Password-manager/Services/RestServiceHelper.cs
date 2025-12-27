@@ -31,7 +31,7 @@ namespace Password_manager.Services
             _tool = new EncryptionAndHashingMethods();
         }
 
-        public async Task SaveCloudData(long cloudId, string email, string token, string password)
+        public async Task SaveCloudData(long cloudId, string email, string token, string password, bool isFirstBackup)
         {
             ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
 
@@ -63,8 +63,8 @@ namespace Password_manager.Services
                 }
 
                 await database.ExecuteAsync(
-                    "UPDATE UserAccounts SET CloudLinked = ?, CloudAccountId = ?, CloudEmail = ?, CloudPassword = ?, CloudTokenEncrypted = ?, CloudTokenExpiry = ?, LastCloudSync = ? WHERE Id = ?",
-                    true, cloudId, email, encryptedCloudPassword, EncryptedJWTTokenInBase64, tokenExpTime, DateTime.UtcNow, userId);
+                    "UPDATE UserAccounts SET CloudLinked = ?, CloudAccountId = ?, CloudEmail = ?, CloudPassword = ?, CloudTokenEncrypted = ?, CloudTokenExpiry = ?, LastCloudSync = ?, IsFirstBackup = ? WHERE Id = ?",
+                    true, cloudId, email, encryptedCloudPassword, EncryptedJWTTokenInBase64, tokenExpTime, DateTime.UtcNow, isFirstBackup, userId);
 
                 _logger.LogInformation("Cloud credentials have been successfully added");
 
@@ -99,8 +99,8 @@ namespace Password_manager.Services
             int userId = Preferences.Get("CurrentUserId", -1);
             try
             {
-                await database.ExecuteAsync("UPDATE UserAccounts SET CloudLinked = ?, CloudAccountId = ?, CloudEmail = ?, CloudPassword = ?, CloudTokenEncrypted = ?, CloudTokenExpiry = ?, LastCloudSync = ? WHERE Id = ?",
-                    false, null, null, null, null, null, null, userId);
+                await database.ExecuteAsync("UPDATE UserAccounts SET CloudLinked = ?, CloudAccountId = ?, CloudEmail = ?, CloudPassword = ?, CloudTokenEncrypted = ?, CloudTokenExpiry = ?, LastCloudSync = ?, IsFirstBackup = ? WHERE Id = ?",
+                    false, null, null, null, null, null, null, null, userId);
 
                 _logger.LogInformation("Cloud credentials data has been successfully deleted");
             }
@@ -264,6 +264,29 @@ namespace Password_manager.Services
             catch (Exception ex)
             {
                 _logger.LogError("Could not retrieve DEK: {ex}", ex);
+                return null;
+            }
+        }
+
+        public async Task<bool?> RetrieveBackupPriority()
+        {
+            ISQLiteAsyncConnection database = _connectionFactory.CreateConnection();
+
+            var userId = Preferences.Get("CurrentUserId", -1);
+            try
+            {
+                var users = await database.QueryAsync<UserAccounts>("SELECT * FROM UserAccounts WHERE Id = ?", userId);
+
+                if (users == null || !users.Any())
+                {
+                    throw new Exception("User not found");
+                }
+
+                return users[0].IsFirstBackup;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("Could not retrieve backup priority: {ex}", ex);
                 return null;
             }
         }

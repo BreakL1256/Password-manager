@@ -119,7 +119,7 @@
                                    Margin="0">
                                 <Label.GestureRecognizers>
                                     <TapGestureRecognizer
-                                        Command="{Binding Source={x:Reference MainPageRoot}, Path=SwitchTabCommand}"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.SwitchTabCommand}"
                                         CommandParameter="{Binding}"/>
                                 </Label.GestureRecognizers>
                             </Label>

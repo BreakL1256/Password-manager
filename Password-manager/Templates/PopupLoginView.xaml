@@ -5,52 +5,55 @@
     xmlns:system="clr-namespace:System;assembly=mscorlib"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     x:Class="Password_manager.Templates.PopupLoginView"
-    CanBeDismissedByTappingOutsideOfPopup="False"
-    Size="400,300"
-    Color="Transparent">
+    VerticalOptions="Center"      
+    HorizontalOptions="Center">
 
-    <VerticalStackLayout 
-    Padding="20" 
-    Spacing="10"
-    VerticalOptions="Center"
-    HorizontalOptions="Center"
-    WidthRequest="200">
+    <Border 
+           WidthRequest="400"
+           HeightRequest="400"
+           BackgroundColor="White"
+           Padding="0">
+        <VerticalStackLayout
+                VerticalOptions="Center"      
+                Padding="20" 
+                Spacing="10">
 
-        <Label Text="Log in to cloud account" 
-           FontSize="32" 
-           FontAttributes="Bold"
-           HorizontalOptions="Center"/>
+            <Label Text="Log in to cloud account" 
+               FontSize="32" 
+               FontAttributes="Bold"
+               HorizontalOptions="Center"/>
 
-        <Border x:Name="EmailBorder"
-            Stroke="Gray"
-            StrokeThickness="2"
-            StrokeShape="RoundRectangle 8"
-            Padding="4">
-            <Entry x:Name="EmailEntry" 
-           Placeholder="Email"
-           FontSize="16"/>
-        </Border>
+            <Border x:Name="EmailBorder"
+                Stroke="Gray"
+                StrokeThickness="2"
+                StrokeShape="RoundRectangle 8"
+                Padding="4">
+                <Entry x:Name="EmailEntry" 
+               Placeholder="Email"
+               FontSize="16"/>
+            </Border>
 
-        <Border x:Name="PasswordBorder"
-            Stroke="Gray"
-            StrokeThickness="2"
-            StrokeShape="RoundRectangle 8"
-            Padding="4">
-            <Entry x:Name="PasswordEntry" 
-           Placeholder="Password" 
-           IsPassword="True"
-           FontSize="16"/>
-        </Border>
+            <Border x:Name="PasswordBorder"
+                Stroke="Gray"
+                StrokeThickness="2"
+                StrokeShape="RoundRectangle 8"
+                Padding="4">
+                <Entry x:Name="PasswordEntry" 
+               Placeholder="Password" 
+               IsPassword="True"
+               FontSize="16"/>
+            </Border>
 
-        <Button Text="Login" 
-            Command="{Binding LoginCommand}"
-            BackgroundColor="Blue"
-            TextColor="White"
-            HeightRequest="50"/>
+            <Button Text="Login" 
+                Command="{Binding LoginCommand}"
+                BackgroundColor="Blue"
+                TextColor="White"
+                HeightRequest="50"/>
 
-        <Button Text="Go to Register" 
-            Command="{Binding NavigationToRegisterPageCommand}"
-            BackgroundColor="Transparent"
-            TextColor="Blue"/>
-    </VerticalStackLayout>
+            <Button Text="Go to Register" 
+                Command="{Binding NavigationToRegisterPageCommand}"
+                BackgroundColor="Transparent"
+                TextColor="Blue"/>
+        </VerticalStackLayout>
+    </Border>
 </toolkit:Popup>

@@ -5,62 +5,65 @@
     xmlns:system="clr-namespace:System;assembly=mscorlib"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     x:Class="Password_manager.Templates.PopupRegisterView"
-    CanBeDismissedByTappingOutsideOfPopup="False"
-    Size="600,400"
-    Color="Transparent">
-    
-    <VerticalStackLayout 
-    Padding="20" 
-    Spacing="10"
-    VerticalOptions="Center"
-    HorizontalOptions="Center"
-    WidthRequest="200">
+    VerticalOptions="Center"      
+    HorizontalOptions="Center">
 
-        <Label Text="Create Cloud Account" 
-           FontSize="25" 
-           FontAttributes="Bold"
-           HorizontalOptions="Center"/>
-        <Border x:Name="EmailBorder"
-            Stroke="Gray"
-            StrokeThickness="2"
-            StrokeShape="RoundRectangle 8"
-            Padding="4">
-            <Entry x:Name="EmailEntry" 
-               Placeholder="Email"
-               FontSize="16"/>
-        </Border>
+    <Border
+        WidthRequest="500"
+        HeightRequest="500"
+        BackgroundColor="White"
+        Padding="0">
+        <VerticalStackLayout 
+            VerticalOptions="Center"
+            Padding="20" 
+            Spacing="10">
 
-        <Border x:Name="PasswordBorder"
-            Stroke="Gray"
-            StrokeThickness="2"
-            StrokeShape="RoundRectangle 8"
-            Padding="4">
-            <Entry x:Name="PasswordEntry" 
-               Placeholder="Password" 
-               IsPassword="True"
-               FontSize="16"/>
-        </Border>
+            <Label Text="Create Cloud Account" 
+               FontSize="25" 
+               FontAttributes="Bold"
+               HorizontalOptions="Center"/>
+            <Border x:Name="EmailBorder"
+                Stroke="Gray"
+                StrokeThickness="2"
+                StrokeShape="RoundRectangle 8"
+                Padding="4">
+                <Entry x:Name="EmailEntry" 
+                   Placeholder="Email"
+                   FontSize="16"/>
+            </Border>
 
-        <Border x:Name="ConfirmPasswordBorder"
-            Stroke="Gray"
-            StrokeThickness="2"
-            StrokeShape="RoundRectangle 8"
-            Padding="4">
-            <Entry x:Name="ConfirmPasswordEntry" 
-               Placeholder="Confirm Password" 
-               IsPassword="True"
-               FontSize="16"/>
-        </Border>
+            <Border x:Name="PasswordBorder"
+                Stroke="Gray"
+                StrokeThickness="2"
+                StrokeShape="RoundRectangle 8"
+                Padding="4">
+                <Entry x:Name="PasswordEntry" 
+                   Placeholder="Password" 
+                   IsPassword="True"
+                   FontSize="16"/>
+            </Border>
 
-        <Button Text="Register"
-            Command="{Binding RegisterCommand}"
-            BackgroundColor="Green"
-            TextColor="White"
-            HeightRequest="50"/>
+            <Border x:Name="ConfirmPasswordBorder"
+                Stroke="Gray"
+                StrokeThickness="2"
+                StrokeShape="RoundRectangle 8"
+                Padding="4">
+                <Entry x:Name="ConfirmPasswordEntry" 
+                   Placeholder="Confirm Password" 
+                   IsPassword="True"
+                   FontSize="16"/>
+            </Border>
 
-        <Button Text="Back to Login"
-            Command="{Binding NavigateBackToLoginCommand}"
-            BackgroundColor="Transparent"
-            TextColor="Blue"/>
-    </VerticalStackLayout>
+            <Button Text="Register"
+                Command="{Binding RegisterCommand}"
+                BackgroundColor="Green"
+                TextColor="White"
+                HeightRequest="50"/>
+
+            <Button Text="Back to Login"
+                Command="{Binding NavigateBackToLoginCommand}"
+                BackgroundColor="Transparent"
+                TextColor="Blue"/>
+        </VerticalStackLayout>
+    </Border>
 </toolkit:Popup>

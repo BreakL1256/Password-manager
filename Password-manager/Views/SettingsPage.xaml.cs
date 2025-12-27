@@ -49,13 +49,12 @@ namespace Password_manager
             {
                 switch (theme)
                 {
-                    case "Light Mode":
-                        Application.Current.UserAppTheme = AppTheme.Light;
-                        break;
                     case "Dark Mode":
                         Application.Current.UserAppTheme = AppTheme.Dark;
                         break;
                     case "System Default":
+                        Application.Current.UserAppTheme = AppTheme.Light;
+                        break;
                     default:
                         Application.Current.UserAppTheme = AppTheme.Unspecified;
                         break;
