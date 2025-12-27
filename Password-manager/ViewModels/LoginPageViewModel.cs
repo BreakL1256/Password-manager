@@ -78,6 +78,8 @@ namespace Password_manager.ViewModels
                     Preferences.Set("IsLoggedIn", true);
                     await SecureStorage.Default.SetAsync("CurrentPassword", password);
                     
+                    ResetTextFields();
+
                     if(NavigateToPage != null)
                     {
                         await NavigateToPage.Invoke("//MainPage");
@@ -91,7 +93,7 @@ namespace Password_manager.ViewModels
             }
             catch (Exception ex)
             {
-                _logger.LogError("Failed to navigate to main page: " + ex);
+                _logger.LogError("Failed to navigate to main page: {ex}", ex);
             }
             finally
             {
@@ -103,6 +105,12 @@ namespace Password_manager.ViewModels
         {
             UsernameBorderColor = Colors.Gray;
             PasswordBorderColor = Colors.Gray;
+        }
+
+        private void ResetTextFields()
+        {
+            Username = string.Empty;
+            Password = string.Empty;
         }
 
         partial void OnUsernameChanged(string value)

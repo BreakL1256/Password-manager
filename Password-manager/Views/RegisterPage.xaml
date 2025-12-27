@@ -15,32 +15,35 @@
                FontAttributes="Bold"
                HorizontalOptions="Center"/>
         <Border x:Name="UsernameBorder"
-                Stroke="Gray"
+                Stroke="{Binding UsernameBorderColor}"
                 StrokeThickness="2"
                 StrokeShape="RoundRectangle 8"
                 Padding="4">
-            <Entry x:Name="UsernameEntry" 
+            <Entry x:Name="UsernameEntry"
+                   Text="{Binding Username}"
                    Placeholder="Username"
                    FontSize="16"/>
         </Border>
 
         <Border x:Name="PasswordBorder"
-                Stroke="Gray"
+                Stroke="{Binding PasswordBorderColor}"
                 StrokeThickness="2"
                 StrokeShape="RoundRectangle 8"
                 Padding="4">
-            <Entry x:Name="PasswordEntry" 
+            <Entry x:Name="PasswordEntry"
+                   Text="{Binding Password}"
                    Placeholder="Password" 
                    IsPassword="True"
                    FontSize="16"/>
         </Border>
 
         <Border x:Name="ConfirmPasswordBorder"
-                Stroke="Gray"
+                Stroke="{Binding ConfirmPasswordBorderColor}"
                 StrokeThickness="2"
                 StrokeShape="RoundRectangle 8"
                 Padding="4">
-            <Entry x:Name="ConfirmPasswordEntry" 
+            <Entry x:Name="ConfirmPasswordEntry"
+                   Text="{Binding ConfirmPassword}"
                    Placeholder="Confirm Password" 
                    IsPassword="True"
                    FontSize="16"/>
@@ -56,5 +59,9 @@
                 Command="{Binding NavigateBackToLoginCommand}"
                 BackgroundColor="Transparent"
                 TextColor="Blue"/>
+
+        <ActivityIndicator IsRunning="{Binding IsLoading}"
+                          IsVisible="{Binding IsLoading}"
+                          Color="Blue"/>
     </VerticalStackLayout>
 </ContentPage>
