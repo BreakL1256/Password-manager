@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Password_manager.Services;
 using Password_manager.Shared;
 using Password_manager.Templates;
+using Password_manager.ViewModels;
 using Syncfusion.Maui.Core.Hosting;
 
 namespace Password_manager
@@ -44,6 +45,8 @@ namespace Password_manager
             builder.Services.AddTransient<PopupLoginView>();
             builder.Services.AddTransient<PopupAddNoteView>();
             builder.Services.AddTransient<PopupEditNoteView>();
+            builder.Services.AddTransient<MainPageViewModel>();
+            builder.Services.AddTransient<LoginPageViewModel>();
 
             return builder.Build();
         }
