@@ -8,12 +8,12 @@ A secure password manager built with .NET MAUI and ASP.NET Core Web API.
 - **Platform:** .NET MAUI (Windows, Android, iOS, macOS)
 - **Local storage:** SQLite database
 - **Works offline:** Full functionality without internet connection
-- **Optional cloud sync:** Connect to API for backup
+- **Optional cloud backup:** Connect to API for backup
 
 ### ASP.NET Core Web API (optional - cloud backup)
 - **Purpose:** Cloud backup for multiple accounts
 - **Database:** PostgreSQL
-- **Note:** The MAUI app works independently; API is only needed for cloud features
+- **Note:** The MAUI app works independently, API is only needed for cloud features
 
 ## Features
 - Local password storage (SQLite)
@@ -31,7 +31,7 @@ A secure password manager built with .NET MAUI and ASP.NET Core Web API.
 <img width="1052" height="590" alt="image" src="https://github.com/user-attachments/assets/cfc494a2-92aa-4675-9841-20c89b9675e6" />
 
 ### Standalone application
-Download:
+Download: https://github.com/BreakL1256/Password-manager/releases/tag/V1.0
 
 ## Application setup (with cloud backup)
 1. Clone the repository
