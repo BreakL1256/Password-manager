@@ -13,7 +13,6 @@ A secure password manager built with .NET MAUI and ASP.NET Core Web API.
 ### ASP.NET Core Web API (optional - cloud backup)
 - **Purpose:** Cloud backup for multiple accounts
 - **Database:** PostgreSQL
-- **Authentication:** JWT-based
 - **Note:** The MAUI app works independently; API is only needed for cloud features
 
 ## Features
@@ -35,11 +34,40 @@ A secure password manager built with .NET MAUI and ASP.NET Core Web API.
 Download:
 
 ## Application setup (with cloud backup)
-Clone the repository
-```
-git clone -b main 
-```
+1. Clone the repository
+  ```
+  git clone -b main https://github.com/BreakL1256/Password-manager.git
+  ```
+2. Configure application (MAUI)
+  - Change `Config.Example.cs` to `Config.cs`
+  - Add your Syncfusion license key
+  ```
+  public const string SyncfusionKey = "YOUR_SYNCFUSION_LICENSE_KEY";
+  ``` 
+  > You can get your license key here (program will work without the key, but will throw popups): https://www.syncfusion.com/products/communitylicense
 
+3. Configure the API
+  - Change `appsettings.example.json` to `appsettings.json`
+  - Add randomly generated secret key and database connection string
+  ```
+  "Jwt": {
+      "SecretKey": "YOUR_JWT_SECRET_HERE",
+      "Issuer": "YourPasswordManagerAPI",
+      "Audience": "YourPasswordManagerClient",
+      "ExpirationHours": 24
+  },
+  "ConnectionStrings": {
+      "DefaultConnection": "YOUR_DATABASE_STRING_HERE"
+  },
+  ```
+4. Run migrations
+ ```
+ cd Password-manager-api
+ dotnet ef database update
+ ```
+5. Running the whole project
+ - Run API
+ - Run MAUI app 
 
 > [!WARNING]
 > Instructions are for setting up on visual studio 2022
