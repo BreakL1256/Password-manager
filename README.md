@@ -4,13 +4,13 @@ A secure password manager built with .NET MAUI and ASP.NET Core Web API.
 
 ## Architecture
 
-### MAUI Application (Standalone)
+### MAUI Application (standalone)
 - **Platform:** .NET MAUI (Windows, Android, iOS, macOS)
-- **Local Storage:** SQLite database
+- **Local storage:** SQLite database
 - **Works offline:** Full functionality without internet connection
-- **Optional Cloud Sync:** Connect to API for backup
+- **Optional cloud sync:** Connect to API for backup
 
-### ASP.NET Core Web API (Optional - Cloud Backup)
+### ASP.NET Core Web API (optional - cloud backup)
 - **Purpose:** Cloud backup for multiple accounts
 - **Database:** PostgreSQL
 - **Authentication:** JWT-based
@@ -25,3 +25,21 @@ A secure password manager built with .NET MAUI and ASP.NET Core Web API.
 ## Platform Support
 - **Windows 10/11** (x64) - tested and working
 
+## Application (in release)
+<img width="1407" height="686" alt="image" src="https://github.com/user-attachments/assets/88e66471-fecd-4998-b8c3-a02975ad0e6b" />
+<img width="1413" height="675" alt="image" src="https://github.com/user-attachments/assets/dffd5ab8-6b95-4a59-91af-b44232c1c14b" />
+<img width="1413" height="681" alt="image" src="https://github.com/user-attachments/assets/d96acd23-9e03-455f-81a8-8af1570b8433" />
+<img width="1052" height="590" alt="image" src="https://github.com/user-attachments/assets/cfc494a2-92aa-4675-9841-20c89b9675e6" />
+
+### Standalone application
+Download:
+
+## Application setup (with cloud backup)
+Clone the repository
+```
+git clone -b main 
+```
+
+
+> [!WARNING]
+> Instructions are for setting up on visual studio 2022
